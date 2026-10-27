@@ -70,7 +70,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
     final filteredList = _filteredDoctors;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F7F1), // Cream background matching image perfectly
+      backgroundColor: const Color(0xFFF3EFE6),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,16 +200,17 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF065F46) : const Color(0xFFEDE9DD),
+                        color: isSelected ? const Color(0xFF1F6B4A) : const Color(0xFFEBE6DC),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: isSelected ? const Color(0xFF1F6B4A) : const Color(0xFFDED8CB)),
                         boxShadow: isSelected 
-                          ? [BoxShadow(color: const Color(0xFF065F46).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))]
+                          ? [BoxShadow(color: const Color(0xFF1F6B4A).withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 3))]
                           : [],
                       ),
                       child: Text(
                         cat,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xFF64748B),
+                          color: isSelected ? Colors.white : const Color(0xFF5A6E64),
                           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
                           fontSize: 13,
                         ),
@@ -290,12 +291,13 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFDED8CB)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1F6B4A).withOpacity(0.04), 
-            blurRadius: 20, 
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.03), 
+            blurRadius: 16, 
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -324,7 +326,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981), // Bright green indicator matching image
+                      color: const Color(0xFF1F6B4A),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -341,31 +343,31 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF334155), letterSpacing: -0.5),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF143B2A), letterSpacing: -0.5),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   department.isNotEmpty ? "${spec.toUpperCase()} • ${department.toUpperCase()}" : spec.toUpperCase(),
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF059669), letterSpacing: 0.5),
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: 0.5),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
+                    const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF5A6E64)),
                     const SizedBox(width: 6),
-                    Text(timings, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF64748B))),
+                    Text(timings, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF5A6E64))),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.currency_rupee_rounded, size: 14, color: Color(0xFFB45309)),
+                    const Icon(Icons.currency_rupee_rounded, size: 14, color: Color(0xFF1F6B4A)),
                     const SizedBox(width: 4),
-                    Text("Fee: ₹$fee", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFB45309))),
+                    Text("Fee: ₹$fee", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A))),
                   ],
                 ),
               ],
@@ -409,15 +411,15 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
               width: 52,
               height: 72,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3EFE6), // Beige pill
+                color: const Color(0xFF1F6B4A),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Icon(Icons.chevron_right_rounded, color: Color(0xFF334155), size: 22),
+                  Icon(Icons.chevron_right_rounded, color: Colors.white, size: 22),
                   SizedBox(height: 4),
-                  Text("BOOK", style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Color(0xFF334155))),
+                  Text("BOOK", style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
                 ],
               ),
             ),

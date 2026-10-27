@@ -49,7 +49,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     _NavItem(Icons.home_rounded,         Icons.home_outlined,         'Home'),
     _NavItem(Icons.calendar_month_rounded, Icons.calendar_month_outlined, 'Appointments'),
     _NavItem(Icons.chat_bubble_rounded,  Icons.chat_bubble_outline_rounded, 'Chat'),
-    _NavItem(Icons.person_rounded,       Icons.person_outline_rounded, 'Profile'),
+    // _NavItem(Icons.person_rounded,       Icons.person_outline_rounded, 'Profile'),
   ];
 
   @override

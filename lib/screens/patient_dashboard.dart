@@ -907,7 +907,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'category': 'Wellness',
       'readTime': '5 min read',
       'icon': Icons.spa_rounded,
-      'color': const Color(0xFF4A90E2),
+      'color': const Color(0xFF1F6B4A),
       'summary': 'Discover simple daily habits that can significantly improve your overall physical and mental well-being.',
       'sections': [
         {'heading': 'Stay Hydrated', 'body': 'Drinking enough water every day is crucial for many reasons: to regulate body temperature, keep joints lubricated, prevent infections, deliver nutrients to cells, and keep organs functioning properly.'},
@@ -919,7 +919,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'category': 'Cardiology',
       'readTime': '4 min read',
       'icon': Icons.favorite_rounded,
-      'color': const Color(0xFFE24A4A),
+      'color': const Color(0xFF1F6B4A),
       'summary': 'Learn how to protect your heart through diet, exercise, and stress management.',
       'sections': [
         {'heading': 'Eat a Heart-Healthy Diet', 'body': 'Focus on fruits, vegetables, whole grains, and lean proteins. Limit saturated fats, sodium, and added sugars.'},
@@ -931,7 +931,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'category': 'Mental Health',
       'readTime': '6 min read',
       'icon': Icons.psychology_rounded,
-      'color': const Color(0xFF904AE2),
+      'color': const Color(0xFF1F6B4A),
       'summary': 'Understanding the crucial link between mental well-being and physical health.',
       'sections': [
         {'heading': 'Manage Stress', 'body': 'Chronic stress can lead to numerous physical problems. Practice relaxation techniques like meditation, yoga, or deep breathing.'},
@@ -943,7 +943,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'category': 'Diet',
       'readTime': '3 min read',
       'icon': Icons.restaurant_rounded,
-      'color': const Color(0xFFE2904A),
+      'color': const Color(0xFF1F6B4A),
       'summary': 'We clarify some of the most common misconceptions about food and dieting.',
       'sections': [
         {'heading': 'Carbs Are Not the Enemy', 'body': 'Complex carbohydrates are essential for energy. Focus on whole grains and avoid refined sugars.'},
@@ -955,7 +955,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
       'category': 'Fitness',
       'readTime': '2 min read',
       'icon': Icons.accessibility_new_rounded,
-      'color': const Color(0xFF4AE290),
+      'color': const Color(0xFF1F6B4A),
       'summary': 'Why taking 5 minutes a day to stretch can transform your mobility and reduce pain.',
       'sections': [
         {'heading': 'Improved Flexibility', 'body': 'Regular stretching helps maintain the range of motion in your joints, preventing injuries.'},
@@ -1241,11 +1241,11 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE2904A),
+                          color: const Color(0xFF1F6B4A),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFE2904A).withOpacity(0.3),
+                              color: const Color(0xFF1F6B4A).withValues(alpha: 0.25),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             )

@@ -108,7 +108,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
           children: [
             const Text(
               "Billing History",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A)),
             ),
             if (_bills.isNotEmpty)
               GestureDetector(
@@ -129,10 +129,10 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                   children: const [
                     Text(
                       "See All",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF045D4B)),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A)),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF045D4B)),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1F6B4A)),
                   ],
                 ),
               )
@@ -142,9 +142,9 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
         SizedBox(
           height: 140, 
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
               : _errorMsg.isNotEmpty
-                  ? Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.red)))
+                  ? Center(child: Text(_errorMsg, style: const TextStyle(color: Color(0xFF1F6B4A))))
                   : ListView.separated(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
@@ -164,8 +164,16 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                             width: 150,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: isPaid ? const Color(0xFFF4F7FB) : const Color(0xFFFFF7ED),
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: const Color(0xFFDED8CB)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
                             ),
                             child: Stack(
                               clipBehavior: Clip.hardEdge,
@@ -177,7 +185,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                                     width: 70,
                                     height: 70,
                                     decoration: BoxDecoration(
-                                      color: (isPaid ? const Color(0xFFE2E8F0) : const Color(0xFFFFEDD5)).withOpacity(0.5),
+                                      color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -188,34 +196,34 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: isPaid ? const Color(0xFFE6F4F1) : const Color(0xFFFFEDD5),
+                                        color: isPaid ? const Color(0xFF1F6B4A).withValues(alpha: 0.1) : const Color(0xFFF3EFE6),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         status,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 9,
                                           fontWeight: FontWeight.w800,
-                                          color: isPaid ? const Color(0xFF045D4B) : const Color(0xFFEA580C),
+                                          color: Color(0xFF1F6B4A),
                                         ),
                                       ),
                                     ),
                                     const Spacer(),
                                     Text(
                                       "₹$amount",
-                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF1E293B)),
+                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF143B2A)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       dateStr,
-                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF94A3B8)),
+                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64)),
                                     ),
                                     const SizedBox(height: 8),
-                                    Align(
+                                    const Align(
                                       alignment: Alignment.bottomRight,
-                                      child: Icon(Icons.receipt_long_outlined, color: isPaid ? const Color(0xFF045D4B) : const Color(0xFFEA580C), size: 18),
+                                      child: Icon(Icons.receipt_long_outlined, color: Color(0xFF1F6B4A), size: 18),
                                     ),
                                   ],
                                 ),
