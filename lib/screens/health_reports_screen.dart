@@ -3,18 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import 'patient_dashboard.dart';
 import 'report_detail_screen.dart';
 
 class HealthReportsScreen extends StatefulWidget {
   final String userName;
   final String location;
   final String cookie;
+  final String patientId;
 
   const HealthReportsScreen({
     super.key,
     required this.userName,
     required this.location,
     required this.cookie,
+    this.patientId = '',
   });
 
   @override
@@ -34,29 +37,34 @@ class _HealthReportsScreenState extends State<HealthReportsScreen> {
 
   Future<void> _fetchReports() async {
     try {
-      final searchRes = await http.get(
-        Uri.parse(ApiConfig.patientSearch(widget.userName)),
-        headers: {
-          'X-Hospital-Branch': widget.location,
-          'Accept': 'application/json',
-          if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie,
-        },
-      );
+      String resolvedPatientId = widget.patientId;
 
-      if (searchRes.statusCode != 200) throw Exception("Failed to find patient details.");
-      final searchJson = jsonDecode(searchRes.body);
-      final patientsList = searchJson['data']?['data'] ?? [];
-      
-      if (patientsList.isEmpty) {
-        if (mounted) setState(() { _isLoading = false; });
-        return;
+      if (resolvedPatientId.isEmpty) {
+        final searchRes = await http.get(
+          Uri.parse(ApiConfig.patientSearch(widget.userName)),
+          headers: {
+            'X-Hospital-Branch': widget.location,
+            'Accept': 'application/json',
+            if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie,
+          },
+        );
+
+        if (searchRes.statusCode != 200) throw Exception("Failed to find patient details.");
+        final searchJson = jsonDecode(searchRes.body);
+        final patientsList = searchJson['data']?['data'] ?? [];
+        
+        if (patientsList.isEmpty) {
+          if (mounted) setState(() { _isLoading = false; });
+          return;
+        }
+        
+        resolvedPatientId = patientsList[0]['patient_id'] ?? '';
       }
-      
-      final patientId = patientsList[0]['patient_id'] ?? '';
-      if (patientId.isEmpty) throw Exception("Invalid Patient ID.");
+
+      if (resolvedPatientId.isEmpty) throw Exception("Invalid Patient ID.");
 
       final reportsRes = await http.get(
-        Uri.parse('${ApiConfig.consultations}?patient_id=$patientId'),
+        Uri.parse('${ApiConfig.consultations}?patient_id=$resolvedPatientId'),
         headers: {
           'X-Hospital-Branch': widget.location,
           'Accept': 'application/json',
@@ -116,7 +124,21 @@ class _HealthReportsScreenState extends State<HealthReportsScreen> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      Navigator.pop(context);
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PatientDashboard(
+                              userName: widget.userName,
+                              location: widget.location,
+                              cookie: widget.cookie,
+                              patientId: widget.patientId,
+                            ),
+                          ),
+                        );
+                      }
                     },
                     child: Container(
                       width: 44,

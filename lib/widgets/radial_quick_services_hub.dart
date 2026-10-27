@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
@@ -9,6 +8,7 @@ import '../screens/billing_history_screen.dart';
 import '../screens/specialist_doctors_screen.dart';
 import '../screens/pharmacy_screen.dart';
 import '../screens/appointments_screen.dart';
+import '../screens/test_data_screen.dart';
 
 class RadialQuickServicesHub extends StatefulWidget {
   final String userName;
@@ -16,6 +16,7 @@ class RadialQuickServicesHub extends StatefulWidget {
   final String cookie;
   final String age;
   final String sex;
+  final String patientId;
 
   const RadialQuickServicesHub({
     Key? key,
@@ -24,6 +25,7 @@ class RadialQuickServicesHub extends StatefulWidget {
     required this.cookie,
     required this.age,
     required this.sex,
+    required this.patientId,
   }) : super(key: key);
 
   @override
@@ -37,7 +39,7 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
     _ServiceData("Reports", Icons.description_rounded, 2),
     _ServiceData("Billing", Icons.receipt_long_rounded, 3),
     _ServiceData("Doctors", Icons.people_alt_rounded, 4),
-    _ServiceData("Records", Icons.assignment_ind_rounded, 5),
+    _ServiceData("Test Data", Icons.science_rounded, 5),
     _ServiceData("Emergency", Icons.emergency_rounded, 6),
     _ServiceData("Insights", Icons.auto_awesome_rounded, 7),
   ];
@@ -80,6 +82,7 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
               age: widget.age,
               sex: widget.sex,
               cookie: widget.cookie,
+              patientId: widget.patientId,
             );
           } else {
             if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to load doctors data.")));
@@ -92,32 +95,38 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
       } catch (e) {
         if (mounted) {
           Navigator.pop(context); // close loading dialog on error
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error connecting to server.")));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error connecting to server.")));
         }
         return;
       }
 
     } else if (service.title == "Reports") {
-      destination = HealthReportsScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie);
+      destination = HealthReportsScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, patientId: widget.patientId);
     } else if (service.title == "Billing") {
-      destination = BillingHistoryScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie);
+      destination = BillingHistoryScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, patientId: widget.patientId);
     } else if (service.title == "Pharmacy") {
-      destination = PharmacyScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie);
+      destination = PharmacyScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, patientId: widget.patientId);
     } else if (service.title == "Book") {
-      destination = AppointmentsScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, age: widget.age, sex: widget.sex);
+      destination = AppointmentsScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, age: widget.age, sex: widget.sex, patientId: widget.patientId);
+    } else if (service.title == "Test Data") {
+      destination = TestDataScreen(patientId: widget.patientId, location: widget.location, cookie: widget.cookie, userName: widget.userName);
+    } else if (service.title == "Emergency") {
+      _showEmergencyModal();
+      return;
     } else {
-      // For Records, Emergency, Insights
+      // For Insights
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${service.title} service is coming soon!")));
       return;
     }
 
-    if (destination != null) {
-      // Custom Fade + Slide Page Transition
-      Navigator.push(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 300),
-          pageBuilder: (context, animation, secondaryAnimation) => destination!,
+    if (!mounted) return;
+    final Widget dest = destination;
+    // Custom Fade + Slide Page Transition
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 300),
+        pageBuilder: (context, animation, secondaryAnimation) => dest,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final slideAnimation = Tween<Offset>(
               begin: const Offset(0.0, 0.05), // Slight slide up
@@ -135,7 +144,123 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
           },
         ),
       );
-    }
+  }
+
+  void _showEmergencyModal() {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.emergency_rounded, color: Color(0xFFEF4444), size: 36),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              "Emergency Services",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "In case of a medical emergency, please contact the hospital immediate helpline or ambulance service directly.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1F6B4A).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 22),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text("Hospital Helpline (24x7)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+                        SizedBox(height: 2),
+                        Text("+91 80 2345 6789", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.airport_shuttle_rounded, color: Color(0xFFEF4444), size: 22),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text("National Ambulance Helpline", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+                        SizedBox(height: 2),
+                        Text("108 / 112", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFFEF4444))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("Dismiss", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

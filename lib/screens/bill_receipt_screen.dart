@@ -114,11 +114,38 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+        ),
         title: const Text("Receipt", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(icon: const Icon(Icons.print_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.print_outlined),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Preparing receipt for printing..."),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Sharing receipt link..."),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: _isLoading

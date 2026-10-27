@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import '../config/api_config.dart';
 import '../widgets/appointment_form_sheet.dart';
 
+import 'patient_dashboard.dart';
+
 class SpecialistDoctorsScreen extends StatefulWidget {
   final String specialization;
   final List<dynamic> doctors;
@@ -12,6 +14,7 @@ class SpecialistDoctorsScreen extends StatefulWidget {
   final String age;
   final String sex;
   final String cookie;
+  final String patientId;
 
   const SpecialistDoctorsScreen({
     super.key,
@@ -22,6 +25,7 @@ class SpecialistDoctorsScreen extends StatefulWidget {
     required this.age,
     required this.sex,
     required this.cookie,
+    this.patientId = '',
   });
 
   @override
@@ -80,7 +84,23 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      Navigator.pop(context);
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PatientDashboard(
+                              userName: widget.userName,
+                              location: widget.location,
+                              cookie: widget.cookie,
+                              age: widget.age,
+                              sex: widget.sex,
+                              patientId: widget.patientId,
+                            ),
+                          ),
+                        );
+                      }
                     },
                     child: Container(
                       width: 44,
@@ -375,8 +395,11 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                       age: widget.age,
                       sex: widget.sex,
                       cookie: widget.cookie,
+                      patientId: widget.patientId,
                       initialDepartment: department,
                       initialDoctorName: doc['full_name'],
+                      onClose: () => Navigator.pop(context),
+                      onSuccess: () => Navigator.pop(context),
                     ),
                   ),
                 ),

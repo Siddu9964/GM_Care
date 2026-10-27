@@ -1,4 +1,4 @@
-package com.example.gm_care;
+package gmu.hospitals.gm_care;
 
 import io.flutter.embedding.android.FlutterFragmentActivity;
 

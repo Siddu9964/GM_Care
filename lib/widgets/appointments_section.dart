@@ -4,13 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../services/notification_service.dart';
+import '../screens/appointments_screen.dart';
 
 class AppointmentsSection extends StatefulWidget {
   final String location;
   final String cookie;
   final String userName;
+  final String age;
+  final String sex;
+  final String patientId;
 
-  const AppointmentsSection({super.key, required this.location, required this.cookie, required this.userName});
+  const AppointmentsSection({
+    super.key,
+    required this.location,
+    required this.cookie,
+    required this.userName,
+    this.age = '--',
+    this.sex = 'Unknown',
+    this.patientId = '',
+  });
 
   @override
   State<AppointmentsSection> createState() => _AppointmentsSectionState();
@@ -133,7 +145,31 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
                 "My Appointments",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
               ),
-              // Removed auto play toggle button
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AppointmentsScreen(
+                        userName: widget.userName,
+                        location: widget.location,
+                        cookie: widget.cookie,
+                        age: widget.age,
+                        sex: widget.sex,
+                        patientId: widget.patientId,
+                      ),
+                    ),
+                  ).then((_) => _fetchAppointments());
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text("See All", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A))),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1F6B4A)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -174,7 +210,22 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
           const Text("You're all caught up! Book a new visit when needed.", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AppointmentsScreen(
+                    userName: widget.userName,
+                    location: widget.location,
+                    cookie: widget.cookie,
+                    age: widget.age,
+                    sex: widget.sex,
+                    patientId: widget.patientId,
+                    initialTab: 1,
+                  ),
+                ),
+              ).then((_) => _fetchAppointments());
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F6B4A),
               foregroundColor: Colors.white,
@@ -328,12 +379,26 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
                               ),
                               if (!isExpired)
                                 ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AppointmentsScreen(
+                                          userName: widget.userName,
+                                          location: widget.location,
+                                          cookie: widget.cookie,
+                                          age: widget.age,
+                                          sex: widget.sex,
+                                          patientId: widget.patientId,
+                                        ),
+                                      ),
+                                    ).then((_) => _fetchAppointments());
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF1F6B4A),
                                     foregroundColor: Colors.white,
                                     elevation: 4,
-                                    shadowColor: const Color(0xFF1F6B4A).withOpacity(0.5),
+                                    shadowColor: const Color(0xFF1F6B4A).withValues(alpha: 0.5),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                   ),

@@ -6,17 +6,20 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../services/notification_service.dart';
 import 'bill_receipt_screen.dart';
+import 'patient_dashboard.dart';
 
 class BillingHistoryScreen extends StatefulWidget {
   final String userName;
   final String location;
   final String cookie;
+  final String patientId;
 
   const BillingHistoryScreen({
     super.key,
     required this.userName,
     required this.location,
     required this.cookie,
+    this.patientId = '',
   });
 
   @override
@@ -37,25 +40,29 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
 
   Future<void> _fetchBillingHistory() async {
     try {
-      final searchRes = await http.get(
-        Uri.parse(ApiConfig.patientSearch(widget.userName)),
-        headers: {
-          'X-Hospital-Branch': widget.location,
-          'Accept': 'application/json',
-          if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie,
-        },
-      );
+      if (widget.patientId.isNotEmpty) {
+        _patientId = widget.patientId;
+      } else {
+        final searchRes = await http.get(
+          Uri.parse(ApiConfig.patientSearch(widget.userName)),
+          headers: {
+            'X-Hospital-Branch': widget.location,
+            'Accept': 'application/json',
+            if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie,
+          },
+        );
 
-      if (searchRes.statusCode != 200) throw Exception("Failed to find patient details.");
-      final searchJson = jsonDecode(searchRes.body);
-      final patientsList = searchJson['data']?['data'] ?? [];
-      
-      if (patientsList.isEmpty) {
-        if (mounted) setState(() { _isLoading = false; _errorMsg = "No bills available."; });
-        return;
+        if (searchRes.statusCode != 200) throw Exception("Failed to find patient details.");
+        final searchJson = jsonDecode(searchRes.body);
+        final patientsList = searchJson['data']?['data'] ?? [];
+        
+        if (patientsList.isEmpty) {
+          if (mounted) setState(() { _isLoading = false; _errorMsg = "No bills available."; });
+          return;
+        }
+        
+        _patientId = patientsList[0]['patient_id'] ?? '';
       }
-      
-      _patientId = patientsList[0]['patient_id'] ?? '';
       if (_patientId.isEmpty) throw Exception("Invalid Patient ID.");
 
       final billsRes = await http.get(
@@ -124,7 +131,21 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      Navigator.pop(context);
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PatientDashboard(
+                              userName: widget.userName,
+                              location: widget.location,
+                              cookie: widget.cookie,
+                              patientId: widget.patientId,
+                            ),
+                          ),
+                        );
+                      }
                     },
                     child: Container(
                       width: 44,

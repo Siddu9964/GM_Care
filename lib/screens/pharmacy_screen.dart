@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import 'patient_dashboard.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  Constants
@@ -76,12 +77,14 @@ class PharmacyScreen extends StatefulWidget {
   final String userName;
   final String location;
   final String cookie;
+  final String patientId;
 
   const PharmacyScreen({
     super.key,
     required this.userName,
     required this.location,
     required this.cookie,
+    this.patientId = '',
   });
 
   @override
@@ -250,7 +253,24 @@ class _PharmacyScreenState extends State<PharmacyScreen>
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PatientDashboard(
+                                userName: widget.userName,
+                                location: widget.location,
+                                cookie: widget.cookie,
+                                patientId: widget.patientId,
+                              ),
+                            ),
+                          );
+                        }
+                      },
                       child: Container(
                         width: 40, height: 40,
                         decoration: BoxDecoration(
@@ -559,7 +579,12 @@ class PrescriptionDetailScreen extends StatelessWidget {
                         children: [
                           // Back button
                           GestureDetector(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+                            },
                             child: Container(
                               width: 40, height: 40,
                               decoration: BoxDecoration(

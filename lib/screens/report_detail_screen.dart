@@ -60,7 +60,7 @@ class ReportDetailScreen extends StatelessWidget {
     int assetIndex = str.indexOf('assets/');
     if (assetIndex != -1) {
       str = str.substring(assetIndex);
-      return "${ApiConfig.scheme}://${ApiConfig.serverIp}:${ApiConfig.port}/GM_HMS/$str";
+      return "${ApiConfig.imageBaseUrl}/GM_HMS/$str";
     }
     
     if (str.isEmpty || str == '[]') return null;
@@ -68,7 +68,7 @@ class ReportDetailScreen extends StatelessWidget {
     str = str.replaceAll(r'd:/xampp/htdocs/gm_hms/', '');
     if (str.startsWith('/')) str = str.substring(1);
     
-    return "${ApiConfig.scheme}://${ApiConfig.serverIp}:${ApiConfig.port}/GM_HMS/$str";
+    return "${ApiConfig.imageBaseUrl}/GM_HMS/$str";
   }
 
   @override
@@ -98,7 +98,14 @@ class ReportDetailScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Color(0xFF1F6B4A)),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1F6B4A)),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
+        ),
         title: const Text(
           "Consultation Report",
           style: TextStyle(

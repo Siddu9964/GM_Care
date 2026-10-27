@@ -1,656 +1,655 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import 'first_time_mobile_screen.dart';
+
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+const _kPrimary  = Color(0xFF14532D); // Deep Medical Emerald
+const _kBg       = Color(0xFFF8FAFC);
+const _kSurface      = Color(0xFFFFFFFF);
+const _kTextDark     = Color(0xFF0F172A);
+const _kTextMuted    = Color(0xFF64748B);
+const _kBorder       = Color(0xFFE2E8F0);
 
 class CreateAccountScreen extends StatefulWidget {
   final String branchName;
-  const CreateAccountScreen({Key? key, this.branchName = 'Nagarabhavi'}) : super(key: key);
+  final String? initialPhone;
+
+  const CreateAccountScreen({
+    super.key,
+    this.branchName = 'Nagarabhavi',
+    this.initialPhone,
+  });
 
   @override
   State<CreateAccountScreen> createState() => _CreateAccountScreenState();
 }
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
-  bool _obscurePassword = true;
-  bool _agreeToTerms = false;
-  String? _selectedGender;
-  bool _isLoading = false;
+  final _firstNameCtrl = TextEditingController();
+  final _lastNameCtrl  = TextEditingController();
+  final _emailCtrl     = TextEditingController();
+  final _phoneCtrl     = TextEditingController();
+  final _ageCtrl       = TextEditingController();
+  final _passCtrl      = TextEditingController();
+  final _confirmCtrl   = TextEditingController();
 
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _ageController = TextEditingController();
+  String _selectedGender = 'Male';
+  String _selectedBranch = 'Nagarabhavi';
+  bool _obscurePass    = true;
+  bool _obscureConfirm = true;
+  bool _isLoading      = false;
+  String? _errorMsg;
+
+  final List<String> _genders  = ['Male', 'Female', 'Other'];
+  final List<String> _branches = ['Nagarabhavi', 'Basaveshwaranagar'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedBranch = widget.branchName;
+    if (widget.initialPhone != null && widget.initialPhone!.isNotEmpty) {
+      _phoneCtrl.text = widget.initialPhone!;
+    }
+  }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _passwordController.dispose();
-    _ageController.dispose();
+    _firstNameCtrl.dispose();
+    _lastNameCtrl.dispose();
+    _emailCtrl.dispose();
+    _phoneCtrl.dispose();
+    _ageCtrl.dispose();
+    _passCtrl.dispose();
+    _confirmCtrl.dispose();
     super.dispose();
   }
 
-  // Colors matching the UI design
-  final Color _primaryDark = const Color(0xFF053F2C); // Very dark green for text and button
-  final Color _primaryGreen = const Color(0xFF1B5E43); // Medium green for links/icons
-  final Color _bgColor = const Color(0xFFE9F0EB); // Soft greenish-beige gradient base
-  final Color _lightGrey = const Color(0xFF9E9E9E);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bgColor,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFE9F2ED),
-              Color(0xFFDFE9E3),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildTopBar(),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Create Account',
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 42,
-                          fontWeight: FontWeight.w700,
-                          fontStyle: FontStyle.italic,
-                          color: _primaryDark,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Join a community of focused professionals.',
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      _buildFormCard(),
-                      const SizedBox(height: 32),
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            style: GoogleFonts.inter(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                            ),
-                            children: [
-                              const TextSpan(text: 'Already have an account? '),
-                              TextSpan(
-                                text: 'Log in',
-                                style: TextStyle(
-                                  color: _primaryDark,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
-              _buildBottomBar(),
-            ],
-          ),
-        ),
-      ),
-    );
+  String? _validate() {
+    final cleanPhone = _phoneCtrl.text.replaceAll(RegExp(r'\D'), '');
+    if (_firstNameCtrl.text.trim().isEmpty) return 'Please enter your First Name.';
+    if (cleanPhone.length != 10) return 'Valid 10-digit phone number is required.';
+    if (_passCtrl.text.isEmpty) return 'Please create a password.';
+    if (_passCtrl.text.length < 6) return 'Password must be at least 6 characters.';
+    if (_passCtrl.text != _confirmCtrl.text) return 'Passwords do not match.';
+    return null;
   }
 
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-            color: _primaryDark,
-            onPressed: () => Navigator.pop(context),
-          ),
-          Text(
-            'AGRI',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: _primaryDark,
-              letterSpacing: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Future<void> _register() async {
+    if (_isLoading) return; // Prevent multi-taps
+    FocusScope.of(context).unfocus();
 
-  Widget _buildBottomBar() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 16.0, top: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildBottomButton(Icons.login, 'Back to Login'),
-          _buildBottomButton(Icons.help_outline, 'Help'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomButton(IconData icon, String label) {
-    return InkWell(
-      onTap: () {
-        if (label == 'Back to Login') {
-          Navigator.pop(context);
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 20, color: Colors.grey[600]),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: _primaryDark.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(28.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildInputField(
-            label: 'FIRST NAME',
-            hint: 'Julian',
-            controller: _firstNameController,
-          ),
-          const SizedBox(height: 20),
-          _buildInputField(
-            label: 'LAST NAME',
-            hint: 'St. James',
-            controller: _lastNameController,
-          ),
-          const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 3, child: _buildDropdownField()),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 2,
-                child: _buildInputField(
-                  label: 'AGE',
-                  hint: '25',
-                  keyboardType: TextInputType.number,
-                  controller: _ageController,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildInputField(
-            label: 'EMAIL ADDRESS',
-            hint: 'julian@aesthetic.co',
-            prefixIcon: Icons.mail_outline,
-            keyboardType: TextInputType.emailAddress,
-            controller: _emailController,
-          ),
-          const SizedBox(height: 20),
-          _buildInputField(
-            label: 'PHONE NUMBER',
-            hint: '+1 (555) 000-0000',
-            prefixIcon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
-            controller: _phoneController,
-          ),
-          const SizedBox(height: 20),
-          _buildPasswordField(),
-          const SizedBox(height: 24),
-          _buildTermsCheckbox(),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: _isLoading ? null : _registerUser,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryDark,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 4,
-              shadowColor: _primaryDark.withOpacity(0.3),
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Begin Journey',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, size: 20),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.inter(
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        color: Colors.grey[600],
-        letterSpacing: 1.0,
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required String hint,
-    IconData? prefixIcon,
-    TextInputType? keyboardType,
-    TextEditingController? controller,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(label),
-        const SizedBox(height: 4),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            color: _primaryDark,
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(
-              color: Colors.grey[400],
-              fontSize: 15,
-            ),
-            prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, size: 20, color: _lightGrey)
-                : null,
-            prefixIconConstraints: prefixIcon != null
-                ? const BoxConstraints(minWidth: 40)
-                : const BoxConstraints(minWidth: 0),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFFEEEEEE), width: 1.5),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: _primaryDark, width: 2),
-            ),
-            isDense: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel('GENDER IDENTITY'),
-        const SizedBox(height: 4),
-        DropdownButtonFormField<String>(
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-          decoration: InputDecoration(
-            prefixIcon: Icon(Icons.people_outline, size: 20, color: _primaryGreen),
-            prefixIconConstraints: const BoxConstraints(minWidth: 40),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFFEEEEEE), width: 1.5),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: _primaryDark, width: 2),
-            ),
-            isDense: true,
-          ),
-          hint: Text(
-            'Select identity',
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              color: _primaryDark,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          value: _selectedGender,
-          items: ['Male', 'Female', 'Non-Binary', 'Other']
-              .map((label) => DropdownMenuItem(
-                    value: label,
-                    child: Text(
-                      label,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        color: _primaryDark,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedGender = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel('CREATE PASSWORD'),
-        const SizedBox(height: 4),
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            color: _primaryDark,
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Min. 8 characters',
-            hintStyle: GoogleFonts.inter(
-              color: Colors.grey[400],
-              fontSize: 15,
-            ),
-            prefixIcon: Icon(Icons.lock_outline, size: 20, color: _lightGrey),
-            prefixIconConstraints: const BoxConstraints(minWidth: 40),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 20,
-                color: _lightGrey,
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-            ),
-            suffixIconConstraints: const BoxConstraints(minWidth: 40),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.transparent),
-            ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.transparent),
-            ),
-            isDense: true,
-          ),
-        ),
-        // Password strength indicator dashes
-        Row(
-          children: List.generate(
-            5,
-            (index) => Expanded(
-              child: Container(
-                height: 3,
-                margin: EdgeInsets.only(right: index < 4 ? 4 : 0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEEEEEE),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTermsCheckbox() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 24,
-          height: 24,
-          child: Checkbox(
-            value: _agreeToTerms,
-            onChanged: (value) {
-              setState(() {
-                _agreeToTerms = value ?? false;
-              });
-            },
-            activeColor: _primaryDark,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            side: const BorderSide(color: Color(0xFFCCCCCC), width: 1.5),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: GoogleFonts.inter(
-                color: Colors.grey[600],
-                fontSize: 12,
-                height: 1.5,
-              ),
-              children: [
-                const TextSpan(text: 'I agree to the '),
-                TextSpan(
-                  text: 'Terms of Service',
-                  style: TextStyle(
-                    color: _primaryGreen,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const TextSpan(text: ' and\nacknowledge the '),
-                TextSpan(
-                  text: 'Privacy Policy',
-                  style: TextStyle(
-                    color: _primaryGreen,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const TextSpan(text: '.'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showPopup(String title, String message, bool isSuccess, {VoidCallback? onSuccess}) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.6),
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(color: isSuccess ? _primaryGreen.withOpacity(0.2) : Colors.red.withOpacity(0.2), blurRadius: 40, offset: const Offset(0, 10)),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: isSuccess ? _primaryGreen.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isSuccess ? Icons.check_circle_outline : Icons.error_outline,
-                    color: isSuccess ? _primaryGreen : Colors.red,
-                    size: 48,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  title,
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 24, color: _primaryDark, height: 1.2),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  message,
-                  style: GoogleFonts.inter(color: Colors.grey[600], fontSize: 14, height: 1.5),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      if (isSuccess && onSuccess != null) {
-                        onSuccess();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isSuccess ? _primaryDark : Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: Text('Continue', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _registerUser() async {
-    if (!_agreeToTerms) {
-      _showPopup('Terms Required', 'Please agree to the Terms of Service to continue.', false);
+    final error = _validate();
+    if (error != null) {
+      setState(() => _errorMsg = error);
       return;
     }
 
     setState(() {
       _isLoading = true;
+      _errorMsg = null;
     });
 
+    final cleanPhone = _phoneCtrl.text.replaceAll(RegExp(r'\D'), '');
+
     try {
-      final response = await http.post(
+      // Step 1: Create patient profile in HMS backend
+      final regRes = await http.post(
         Uri.parse(ApiConfig.patients),
         headers: {
           'Content-Type': 'application/json',
-          'X-Hospital-Branch': widget.branchName,
+          'X-Hospital-Branch': _selectedBranch,
         },
         body: jsonEncode({
-          'title': 'Mr', 
-          'first_name': _firstNameController.text,
-          'last_name': _lastNameController.text,
-          'sex': _selectedGender ?? 'Other',
-          'age': int.tryParse(_ageController.text),
-          'aadhar': '', 
-          'phone': _phoneController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
+          'title':      _selectedGender == 'Male' ? 'Mr' : (_selectedGender == 'Female' ? 'Ms' : 'Other'),
+          'first_name': _firstNameCtrl.text.trim(),
+          'last_name':  _lastNameCtrl.text.trim(),
+          'sex':        _selectedGender,
+          'age':        int.tryParse(_ageCtrl.text.trim()) ?? 0,
+          'phone':      cleanPhone,
+          'email':      _emailCtrl.text.trim(),
+          'password':   _passCtrl.text,
         }),
-      );
+      ).timeout(const Duration(seconds: 12));
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        if (mounted) {
-          _showPopup('Success!', 'Your account has been created successfully.', true, onSuccess: () {
-            Navigator.pop(context);
-          });
+      final regData = jsonDecode(regRes.body) as Map<String, dynamic>;
+
+      // Duplicate phone check
+      if (regRes.statusCode == 400 || regRes.statusCode == 409) {
+        final msg = (regData['message'] ?? '').toString().toLowerCase();
+        if (msg.contains('phone') || msg.contains('mobile') || msg.contains('exists')) {
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+          _showDuplicateDialog(cleanPhone);
+          return;
         }
-      } else {
-        if (mounted) {
-          _showPopup('Registration Failed', 'Could not complete registration. ${response.body}', false);
-        }
+        setState(() {
+          _isLoading = false;
+          _errorMsg  = regData['message']?.toString() ?? 'Registration failed. Please try again.';
+        });
+        return;
       }
-    } catch (e) {
-      if (mounted) {
-        _showPopup('Error', 'An unexpected error occurred: $e', false);
+
+      if (regRes.statusCode != 200 && regRes.statusCode != 201) {
+        setState(() {
+          _isLoading = false;
+          _errorMsg  = regData['message']?.toString() ?? 'Registration could not be completed.';
+        });
+        return;
       }
-    } finally {
+
+      // Registration successful — redirect to login screen
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Account created! Please sign in with your new password.',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: _kPrimary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 700));
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => FirstTimeMobileScreen(
+            initialPhone: cleanPhone,
+            initialBranch: _selectedBranch,
+          ),
+        ),
+        (route) => false,
+      );
+    } catch (_) {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _errorMsg  = 'Unable to connect to hospital server. Please check your internet connection.';
         });
       }
     }
+  }
+
+  void _showDuplicateDialog(String phone) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _kSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFDCFCE7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.info_outline_rounded, color: _kPrimary, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Already Registered',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 17, color: _kTextDark),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'This mobile number is already registered in our hospital records. Please sign in with your password.',
+          style: GoogleFonts.inter(fontSize: 13.5, color: _kTextMuted, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: GoogleFonts.inter(color: _kTextMuted, fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) => FirstTimeMobileScreen(
+                    initialPhone: phone,
+                    initialBranch: _selectedBranch,
+                  ),
+                ),
+                (route) => false,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _kPrimary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: Text('Log In', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Scaffold(
+      backgroundColor: _kBg,
+      appBar: AppBar(
+        backgroundColor: _kBg,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _kTextDark, size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(24, 8, 24, bottomInset > 0 ? bottomInset + 20 : 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Header ──────────────────────────────────────────────
+                    Text(
+                      'New Patient Profile',
+                      style: GoogleFonts.inter(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: _kTextDark,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Create your GM Care health account in a few simple steps.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: _kTextMuted,
+                        height: 1.4,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ── Verified Mobile Display ─────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _kBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.phone_android_rounded, color: _kTextMuted, size: 18),
+                          const SizedBox(width: 10),
+                          Text(
+                            '+91 ${_phoneCtrl.text}',
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: _kTextDark,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.check_circle_rounded, size: 12, color: _kPrimary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Pre-filled',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: _kPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Personal Details ────────────────────────────────────
+                    Text(
+                      'Personal Details',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: _kTextDark,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(_firstNameCtrl, 'First Name *', Icons.person_outline_rounded),
+                    const SizedBox(height: 12),
+                    _buildTextField(_lastNameCtrl, 'Last Name', Icons.person_outline_rounded),
+                    const SizedBox(height: 16),
+
+                    // ── Gender Chips ────────────────────────────────────────
+                    Text(
+                      'Gender',
+                      style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w600, color: _kTextMuted),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: _genders.map((g) {
+                        final selected = _selectedGender == g;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedGender = g),
+                            child: Container(
+                              margin: EdgeInsets.only(right: g != _genders.last ? 8 : 0),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: selected ? _kPrimary : _kSurface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: selected ? _kPrimary : _kBorder,
+                                ),
+                              ),
+                              child: Text(
+                                g,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  color: selected ? Colors.white : _kTextDark,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      _ageCtrl,
+                      'Age',
+                      Icons.cake_outlined,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(3)],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Hospital Branch ─────────────────────────────────────
+                    Text(
+                      'Preferred Hospital Branch',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: _kTextDark,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: _branches.map((b) {
+                        final selected = _selectedBranch == b;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedBranch = b),
+                            child: Container(
+                              margin: EdgeInsets.only(right: b != _branches.last ? 8 : 0),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              decoration: BoxDecoration(
+                                color: selected ? _kPrimary : _kSurface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: selected ? _kPrimary : _kBorder,
+                                ),
+                              ),
+                              child: Text(
+                                b,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12.5,
+                                  color: selected ? Colors.white : _kTextDark,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Email (Optional) ────────────────────────────────────
+                    _buildTextField(_emailCtrl, 'Email (Optional)', Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+
+                    const SizedBox(height: 24),
+
+                    // ── Password ────────────────────────────────────────────
+                    Text(
+                      'Create App Password',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: _kTextDark,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildPasswordField(
+                      controller: _passCtrl,
+                      label: 'Password * (min 6 characters)',
+                      obscure: _obscurePass,
+                      onToggle: () => setState(() => _obscurePass = !_obscurePass),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildPasswordField(
+                      controller: _confirmCtrl,
+                      label: 'Confirm Password *',
+                      obscure: _obscureConfirm,
+                      onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+
+                    // ── Error Banner ────────────────────────────────────────
+                    if (_errorMsg != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFFECACA)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              color: Color(0xFFDC2626),
+                              size: 17,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMsg!,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0xFFB91C1C),
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 28),
+
+                    // ── Submit Button ───────────────────────────────────────
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _register,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _kPrimary,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: _kPrimary.withValues(alpha: 0.6),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.4,
+                                ),
+                              )
+                            : Text(
+                                'Complete Registration & Continue',
+                                style: GoogleFonts.inter(
+                                  fontSize: 15.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Back to mobile number entry',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _kTextMuted,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController ctrl,
+    String label,
+    IconData icon, {
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Container(
+      height: 54,
+      decoration: BoxDecoration(
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _kBorder),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: ctrl,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w600, color: _kTextDark),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: GoogleFonts.inter(fontSize: 13.5, color: const Color(0xFF94A3B8)),
+          prefixIcon: Icon(icon, color: _kPrimary, size: 18),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
+        onChanged: (_) {
+          if (_errorMsg != null) setState(() => _errorMsg = null);
+        },
+      ),
+    );
+  }
+
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscure,
+    required VoidCallback onToggle,
+  }) {
+    return Container(
+      height: 54,
+      decoration: BoxDecoration(
+        color: _kSurface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _kBorder),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w600, color: _kTextDark),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: GoogleFonts.inter(fontSize: 13.5, color: const Color(0xFF94A3B8)),
+          prefixIcon: const Icon(Icons.lock_outline_rounded, color: _kPrimary, size: 18),
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+              color: const Color(0xFF94A3B8),
+              size: 18,
+            ),
+            onPressed: onToggle,
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
+        onChanged: (_) {
+          if (_errorMsg != null) setState(() => _errorMsg = null);
+        },
+      ),
+    );
   }
 }

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'notifications_screen.dart';
 import '../config/api_config.dart';
@@ -20,6 +23,7 @@ class PatientDashboard extends StatefulWidget {
   final String age;
   final String sex;
   final String cookie;
+  final String patientId;
 
   const PatientDashboard({
     super.key, 
@@ -28,6 +32,7 @@ class PatientDashboard extends StatefulWidget {
     this.age = "--",
     this.sex = "Unknown",
     this.cookie = "",
+    this.patientId = "",
   });
 
   @override
@@ -40,6 +45,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String get age => widget.age;
   String get sex => widget.sex;
   String get cookie => widget.cookie;
+  String get patientId => widget.patientId;
 
   Key _refreshKey = UniqueKey();
   int _activeNavIndex = 0;
@@ -48,6 +54,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String _selectedCategory = 'All';
   final List<String> _categories = ['All', 'Heart', 'Brain', 'Dental', 'Child Care', 'ENT', 'Eye', 'Skin', 'Orthopedic', 'Women Care'];
   String? _profileImageUrl;
+  String? _localAvatarPath;
 
   // Cover Flow State
   late PageController _pageController;
@@ -89,23 +96,48 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
   }
 
-  Future<void> _fetchPatientProfile() async {
+  Future<void> _loadLocalAvatar() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final path = prefs.getString('avatar_path');
+      if (path != null && path.isNotEmpty && mounted) {
+        setState(() {
+          _localAvatarPath = path;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _fetchPatientProfile() async {
+    await _loadLocalAvatar();
+    try {
+      String searchKey = widget.patientId.trim();
+      if (searchKey.isEmpty) {
+        final rawUser = widget.userName.trim();
+        searchKey = rawUser.contains(' ') ? rawUser.split(' ').first : rawUser;
+      }
+
       final response = await http.get(
-        Uri.parse(ApiConfig.patientSearch(widget.userName)),
+        Uri.parse(ApiConfig.patientSearch(searchKey)),
         headers: {
           'X-Hospital-Branch': widget.location,
           'Accept': 'application/json',
           if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie,
         },
-      );
+      ).timeout(const Duration(seconds: 10));
+
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
-        final patientsList = json['data']?['data'] ?? [];
-        if (patientsList.isNotEmpty && mounted) {
-          setState(() {
-            _profileImageUrl = patientsList[0]['image'];
-          });
+        dynamic d = json['data'];
+        if (d is Map && d.containsKey('data')) d = d['data'];
+        if (d is List && d.isNotEmpty && mounted) {
+          final patientData = Map<String, dynamic>.from(d[0]);
+          final img = patientData['image']?.toString();
+          if (img != null && img.isNotEmpty) {
+            setState(() {
+              _profileImageUrl = img;
+            });
+          }
         }
       }
     } catch (e) {
@@ -175,9 +207,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
                     const Divider(color: Color(0xFF1F6B4A), thickness: 1, height: 32),
                     _buildFindDoctorsBySpeciality(),
                     const SizedBox(height: 24),
-                    AppointmentsSection(location: location, cookie: cookie, userName: userName),
+                    AppointmentsSection(
+                      location: location,
+                      cookie: cookie,
+                      userName: userName,
+                      patientId: patientId,
+                      age: age,
+                      sex: sex,
+                    ),
                     const SizedBox(height: 16),
-                    RadialQuickServicesHub(userName: userName, location: location, cookie: cookie, age: age, sex: sex),
+                    RadialQuickServicesHub(userName: userName, location: location, cookie: cookie, age: age, sex: sex, patientId: patientId),
                     const SizedBox(height: 16),
                     const AutoScrollOffers(),
                     const SizedBox(height: 16),
@@ -199,7 +238,11 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       userName: widget.userName,
                       age: widget.age,
                       sex: widget.sex,
+                      patientId: widget.patientId,
                     )));
+                } else if (idx == 2) {
+                  _showSupportChatModal(context);
+                  setState(() => _activeNavIndex = 0);
                 } else if (idx == 3) {
                   Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (_) => AccountScreen(
@@ -208,6 +251,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                       cookie: widget.cookie,
                       age: widget.age,
                       sex: widget.sex,
+                      patientId: widget.patientId,
                     )));
                 }
               },
@@ -218,52 +262,219 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
-  Widget _buildHeader() {
-    ImageProvider avatarImage;
-    if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-      if (_profileImageUrl!.startsWith('data:image')) {
-        final base64String = _profileImageUrl!.split(',').last;
-        avatarImage = MemoryImage(base64Decode(base64String));
-      } else if (_profileImageUrl!.startsWith('http')) {
-        avatarImage = NetworkImage(_profileImageUrl!);
-      } else if (_profileImageUrl!.length > 100 && !_profileImageUrl!.startsWith('/')) {
-        avatarImage = MemoryImage(base64Decode(_profileImageUrl!));
-      } else {
-        avatarImage = NetworkImage('${ApiConfig.imageBaseUrl}$_profileImageUrl');
-      }
-    } else {
-      avatarImage = const NetworkImage('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150');
-    }
+  void _showSupportChatModal(BuildContext context) {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1F6B4A).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.support_agent_rounded, color: Color(0xFF1F6B4A), size: 36),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              "GM Care Support",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Need assistance with appointments or hospital services? Our concierge desk is available 24/7.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 24),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text("Helpline", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
+                        SizedBox(height: 2),
+                        Text("+91 80 2345 6789", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("Close", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.grey[300],
-              backgroundImage: avatarImage,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              "Welcome back, $userName",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
-            ),
-          ],
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountScreen(
+                  userName: widget.userName,
+                  location: widget.location,
+                  cookie: widget.cookie,
+                  age: widget.age,
+                  sex: widget.sex,
+                  patientId: widget.patientId,
+                ),
+              ),
+            ).then((_) => _fetchPatientProfile());
+          },
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF0E5236),
+                  border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.3), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    )
+                  ],
+                ),
+                child: ClipOval(
+                  child: Builder(
+                    builder: (context) {
+                      if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
+                        if (_profileImageUrl!.startsWith('data:image')) {
+                          final base64String = _profileImageUrl!.split(',').last;
+                          return Image.memory(base64Decode(base64String), fit: BoxFit.cover, width: 44, height: 44);
+                        } else if (_profileImageUrl!.startsWith('http')) {
+                          return Image.network(_profileImageUrl!, fit: BoxFit.cover, width: 44, height: 44,
+                            errorBuilder: (ctx, err, stack) => _buildAvatarFallback());
+                        } else if (_profileImageUrl!.length > 100 && !_profileImageUrl!.startsWith('/')) {
+                          return Image.memory(base64Decode(_profileImageUrl!), fit: BoxFit.cover, width: 44, height: 44,
+                            errorBuilder: (ctx, err, stack) => _buildAvatarFallback());
+                        } else {
+                          // Try server URL
+                          return Image.network(
+                            '${ApiConfig.imageBaseUrl}$_profileImageUrl',
+                            fit: BoxFit.cover,
+                            width: 44,
+                            height: 44,
+                            errorBuilder: (ctx, err, stack) {
+                              final pId = widget.patientId.isNotEmpty ? widget.patientId : widget.userName;
+                              return Image.network(
+                                '${ApiConfig.baseUrl}/patients/$pId/image',
+                                fit: BoxFit.cover,
+                                width: 44,
+                                height: 44,
+                                errorBuilder: (ctx2, err2, stack2) => _buildAvatarFallback(),
+                              );
+                            },
+                          );
+                        }
+                      }
+                      return _buildAvatarFallback();
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Welcome back,",
+                    style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    userName,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => NotificationsScreen(patientId: widget.userName),
+                builder: (context) => NotificationsScreen(
+                  patientId: widget.patientId.isNotEmpty ? widget.patientId : widget.userName,
+                ),
               ),
             );
           },
-          child: const Icon(Icons.notifications_none_outlined, size: 24, color: Color(0xFF1F6B4A)),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 3)),
+              ],
+            ),
+            child: const Icon(Icons.notifications_none_outlined, size: 22, color: Color(0xFF1F6B4A)),
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAvatarFallback() {
+    if (_localAvatarPath != null) {
+      final f = File(_localAvatarPath!);
+      if (f.existsSync()) {
+        return Image.file(f, fit: BoxFit.cover, width: 44, height: 44);
+      }
+    }
+    final initial = userName.trim().isNotEmpty ? userName.trim()[0].toUpperCase() : 'G';
+    return Container(
+      color: const Color(0xFF0E5236),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
+        ),
+      ),
     );
   }
 
@@ -529,7 +740,14 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                 isDesktop: true,
                                 onTap: () {
                                   Navigator.push(navContext, MaterialPageRoute(builder: (_) => SpecialistDoctorsScreen(
-                                    specialization: spec, doctors: filteredDocs, userName: widget.userName, location: widget.location, age: widget.age, sex: widget.sex, cookie: widget.cookie,
+                                    specialization: spec,
+                                    doctors: filteredDocs,
+                                    userName: widget.userName,
+                                    location: widget.location,
+                                    age: widget.age,
+                                    sex: widget.sex,
+                                    cookie: widget.cookie,
+                                    patientId: widget.patientId,
                                   )));
                                 },
                               ),
@@ -591,7 +809,14 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                           _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOutCubic);
                                         } else {
                                           Navigator.push(navContext, MaterialPageRoute(builder: (_) => SpecialistDoctorsScreen(
-                                            specialization: spec, doctors: filteredDocs, userName: widget.userName, location: widget.location, age: widget.age, sex: widget.sex, cookie: widget.cookie,
+                                            specialization: spec,
+                                            doctors: filteredDocs,
+                                            userName: widget.userName,
+                                            location: widget.location,
+                                            age: widget.age,
+                                            sex: widget.sex,
+                                            cookie: widget.cookie,
+                                            patientId: widget.patientId,
                                           )));
                                         }
                                       },

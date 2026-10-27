@@ -31,6 +31,9 @@ class AppointmentFormSheet extends StatefulWidget {
   final String? appointmentId;
   final String? initialDate;
   final String? initialTime;
+  final String? patientId;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onClose;
 
   const AppointmentFormSheet({
     super.key,
@@ -44,6 +47,9 @@ class AppointmentFormSheet extends StatefulWidget {
     this.appointmentId,
     this.initialDate,
     this.initialTime,
+    this.patientId,
+    this.onSuccess,
+    this.onClose,
   });
 
   @override
@@ -270,8 +276,11 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
   // ══════════════════════════════════════════════════════════════════════════
   Future<void> _fetchPatientDetails() async {
     try {
+      final queryKey = (widget.patientId != null && widget.patientId!.trim().isNotEmpty)
+          ? widget.patientId!.trim()
+          : widget.userName;
       final response = await http.get(
-        Uri.parse(ApiConfig.patientSearch(widget.userName)),
+        Uri.parse(ApiConfig.patientSearch(queryKey)),
         headers: {
           'X-Hospital-Branch': widget.location,
           'Accept': 'application/json',
@@ -367,11 +376,11 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
   //  HELPERS
   // ══════════════════════════════════════════════════════════════════════════
   
-  void _showMessage(String message, {bool isError = false}) {
+  void _showMessage(String message, {bool isError = false, VoidCallback? onDismiss}) {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -383,7 +392,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -413,11 +422,15 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
           ),
         );
       },
-    );
+    ).then((_) {
+      if (mounted) {
+        onDismiss?.call();
+      }
+    });
     
-    // Auto-dismiss after 2.5 seconds
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (Navigator.of(context).canPop()) {
+    // Auto-dismiss dialog after 2.0 seconds
+    Future.delayed(const Duration(milliseconds: 2000), () {
+      if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
     });
@@ -556,7 +569,13 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
             ),
           ),
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              if (widget.onClose != null) {
+                widget.onClose!();
+              } else if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+            },
             child: Container(
               width: 32, height: 32,
               decoration: BoxDecoration(
@@ -1517,10 +1536,16 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
         if (json['status'] == 'success') {
           if (mounted) {
             final isUpdate = widget.appointmentId != null && widget.appointmentId!.isNotEmpty;
-            _showMessage(isUpdate ? 'Appointment rescheduled!' : 'Appointment confirmed!');
-            Future.delayed(const Duration(milliseconds: 2500), () {
-              if (mounted) Navigator.pop(context);
-            });
+            _showMessage(
+              isUpdate ? 'Appointment rescheduled!' : 'Appointment confirmed!',
+              onDismiss: () {
+                if (widget.onSuccess != null) {
+                  widget.onSuccess!();
+                } else if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+              },
+            );
           }
         } else {
           _showError(json['message'] ?? 'Failed to book appointment.');

@@ -8,7 +8,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../services/notification_service.dart';
-import 'login_screen.dart';
+import 'first_time_mobile_screen.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import 'patient_dashboard.dart';
 import 'appointments_screen.dart';
@@ -28,6 +28,7 @@ class AccountScreen extends StatefulWidget {
   final String age;
   final String sex;
   final String cookie;
+  final String patientId;
 
   const AccountScreen({
     super.key,
@@ -36,6 +37,7 @@ class AccountScreen extends StatefulWidget {
     required this.age,
     required this.sex,
     required this.cookie,
+    this.patientId = '',
   });
 
   @override
@@ -163,6 +165,19 @@ class _AccountScreenState extends State<AccountScreen>
     return ln.isNotEmpty ? '${fn[0]}${ln[0]}'.toUpperCase() : fn[0].toUpperCase();
   }
 
+  Widget _buildFallbackAvatar() {
+    if (_localAvatarPath != null) {
+      final f = File(_localAvatarPath!);
+      if (f.existsSync()) {
+        return Image.file(f, fit: BoxFit.cover, width: 112, height: 112);
+      }
+    }
+    return Center(
+      child: Text(_initials,
+        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2)),
+    );
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
   void _toast(String msg, {bool ok = true}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -192,7 +207,10 @@ class _AccountScreenState extends State<AccountScreen>
       if (mounted) setState(() => _isLoading = true);
       
       try {
-        final uri = Uri.parse(ApiConfig.patientImageUpload(_patient['patient_id'] ?? widget.userName));
+        final targetId = (_patient['patient_id'] != null && _patient['patient_id'].toString().isNotEmpty)
+            ? _patient['patient_id'].toString()
+            : widget.userName;
+        final uri = Uri.parse(ApiConfig.patientImageUpload(targetId));
         var request = http.MultipartRequest('POST', uri);
         request.headers.addAll({
           'Accept': 'application/json',
@@ -208,6 +226,13 @@ class _AccountScreenState extends State<AccountScreen>
         if (response.statusCode == 200 || response.statusCode == 201) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('avatar_path', picked.path);
+          try {
+            final resJson = jsonDecode(response.body);
+            final newUrl = resJson['data']?['url'];
+            if (newUrl != null) {
+              _patient['image'] = newUrl;
+            }
+          } catch (_) {}
           if (mounted) {
             setState(() {
               _localAvatarPath = picked.path;
@@ -218,7 +243,16 @@ class _AccountScreenState extends State<AccountScreen>
           }
           _toast('Profile picture updated!');
         } else {
-          _toast('Failed to upload image', ok: false);
+          String errMsg = 'Failed to upload image (${response.statusCode})';
+          try {
+            final resJson = jsonDecode(response.body);
+            if (resJson['error'] != null) {
+              errMsg = resJson['error'];
+            } else if (resJson['message'] != null) {
+              errMsg = resJson['message'];
+            }
+          } catch (_) {}
+          _toast(errMsg, ok: false);
         }
       } catch (e) {
         _toast('Upload error: $e', ok: false);
@@ -421,9 +455,30 @@ class _AccountScreenState extends State<AccountScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(ctx);
-                        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+                        final prefs = await SharedPreferences.getInstance();
+                        
+                        // ── Clear Session & Biometric Data ────────────────────
+                        // This prevents FirstTimeMobileScreen from auto-logging back in
+                        await prefs.remove('session_cookie');
+                        await prefs.remove('session_name');
+                        await prefs.remove('session_branch');
+                        await prefs.remove('session_patient_id');
+                        await prefs.remove('session_age');
+                        await prefs.remove('session_sex');
+                        
+                        await prefs.remove('bio_cookie');
+                        await prefs.remove('bio_username');
+                        await prefs.remove('bio_age');
+                        await prefs.remove('bio_sex');
+                        await prefs.remove('bio_patient_id');
+
+                        if (!mounted) return;
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const FirstTimeMobileScreen()),
+                          (_) => false,
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFDC2626),
@@ -445,26 +500,46 @@ class _AccountScreenState extends State<AccountScreen>
   }
 
   void _showEditProfile() {
-    final phoneCtrl   = TextEditingController()..text = _phone == 'N/A' ? '' : _phone;
-    final emailCtrl   = TextEditingController()..text = _email == 'N/A' ? '' : _email;
-    final addressCtrl = TextEditingController()..text = (_patient['address'] ?? '').toString();
-    final cityCtrl    = TextEditingController()..text = (_patient['city'] ?? '').toString();
-    String? blood = _bloodGroup == 'N/A' ? null : _bloodGroup;
+    final phoneCtrl      = TextEditingController()..text = _phone == 'N/A' ? '' : _phone;
+    final emailCtrl      = TextEditingController()..text = _email == 'N/A' ? '' : _email;
+    final aadharCtrl     = TextEditingController()..text = (_patient['aadhar'] ?? '').toString();
+    final occupationCtrl = TextEditingController()..text = _occupation == 'N/A' ? '' : _occupation;
+    final addressCtrl    = TextEditingController()..text = (_patient['address'] ?? '').toString();
+    final cityCtrl       = TextEditingController()..text = (_patient['city'] ?? '').toString();
+    final allowedBlood   = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+    String rawBlood      = (_patient['blood_group'] ?? '').toString().trim();
+    String normalizedBlood = rawBlood
+        .replaceAll(RegExp(r'\s*\+?ve', caseSensitive: false), '+')
+        .replaceAll(RegExp(r'\s*\-?ve', caseSensitive: false), '-')
+        .toUpperCase();
+    String? blood = allowedBlood.contains(normalizedBlood)
+        ? normalizedBlood
+        : (allowedBlood.contains(rawBlood.toUpperCase()) ? rawBlood.toUpperCase() : null);
     bool saving = false;
 
     showModalBottomSheet(
       context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, ss) => _sheet(ctx, 'Edit Profile', Icons.edit_rounded, _kGreen, [
-          _sheetField('Phone', phoneCtrl, Icons.phone_rounded, TextInputType.phone),
-          _sheetField('Email', emailCtrl, Icons.email_rounded, TextInputType.emailAddress),
+          _sheetField('Phone Number', phoneCtrl, Icons.phone_rounded, TextInputType.phone, maxLength: 10),
+          _sheetField('Email Address', emailCtrl, Icons.email_rounded, TextInputType.emailAddress),
+          _sheetField('Aadhaar Number', aadharCtrl, Icons.credit_card_rounded, TextInputType.number, maxLength: 12, hintText: '12-digit Aadhaar number'),
+          _sheetField('Occupation', occupationCtrl, Icons.work_outline_rounded, TextInputType.text, hintText: 'e.g. Engineer, Business, Student'),
           _sheetField('Address', addressCtrl, Icons.home_rounded, TextInputType.streetAddress),
           _sheetField('City', cityCtrl, Icons.location_city_rounded, TextInputType.text),
-          _dropdownField('Blood Group', blood, ['A+','A-','B+','B-','AB+','AB-','O+','O-'], Icons.bloodtype_rounded, (v) => ss(() => blood = v)),
+          _dropdownField('Blood Group', blood, allowedBlood, Icons.bloodtype_rounded, (v) => ss(() => blood = v)),
           const SizedBox(height: 8),
           _sheetButton(saving, 'Save Changes', Icons.save_rounded, _kGreen, () async {
             ss(() => saving = true);
-            await _saveProfile(phone: phoneCtrl.text, email: emailCtrl.text, address: addressCtrl.text, city: cityCtrl.text, bloodGroup: blood);
+            await _saveProfile(
+              phone: phoneCtrl.text, 
+              email: emailCtrl.text, 
+              aadhar: aadharCtrl.text,
+              occupation: occupationCtrl.text,
+              address: addressCtrl.text, 
+              city: cityCtrl.text, 
+              bloodGroup: blood,
+            );
             if (mounted && ctx.mounted) Navigator.pop(ctx);
           }),
         ]),
@@ -472,23 +547,56 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Future<void> _saveProfile({String? phone, String? email, String? address, String? city, String? bloodGroup}) async {
+  Future<void> _saveProfile({
+    String? phone, 
+    String? email, 
+    String? aadhar,
+    String? occupation,
+    String? address, 
+    String? city, 
+    String? bloodGroup,
+  }) async {
     if (_patientId == 'N/A') { _toast('Patient ID not found', ok: false); return; }
     try {
       final body = <String, dynamic>{};
-      if (phone?.isNotEmpty == true) body['phone'] = phone;
-      if (email?.isNotEmpty == true) body['email'] = email;
-      if (address?.isNotEmpty == true) body['address'] = address;
-      if (city?.isNotEmpty == true) body['city'] = city;
+      if (phone != null) body['phone'] = phone.trim();
+      if (email != null) body['email'] = email.trim();
+      if (aadhar != null) body['aadhar'] = aadhar.trim();
+      if (occupation != null) body['occupation'] = occupation.trim();
+      if (address != null) body['address'] = address.trim();
+      if (city != null) body['city'] = city.trim();
       if (bloodGroup != null) body['blood_group'] = bloodGroup;
+
+      final url = ApiConfig.patientUpdate(_patientId);
       final r = await http.put(
-        Uri.parse('${ApiConfig.patients}/$_patientId'),
-        headers: {'Content-Type': 'application/json', 'Accept': 'application/json', if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie},
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Hospital-Branch': widget.location,
+          if (widget.cookie.isNotEmpty) 'Cookie': widget.cookie,
+        },
         body: jsonEncode(body),
       ).timeout(const Duration(seconds: 10));
-      if (r.statusCode == 200) { _toast('Profile updated!'); await _load(); }
-      else { _toast('Update failed (${r.statusCode})', ok: false); }
-    } catch (_) { _toast('Network error', ok: false); }
+
+      if (r.statusCode == 200) { 
+        _toast('Profile updated!'); 
+        await _load(); 
+      } else { 
+        String errMsg = 'Update failed (${r.statusCode})';
+        try {
+          final resJson = jsonDecode(r.body);
+          if (resJson['error'] != null) {
+            errMsg = resJson['error'];
+          } else if (resJson['message'] != null) {
+            errMsg = resJson['message'];
+          }
+        } catch (_) {}
+        _toast(errMsg, ok: false); 
+      }
+    } catch (e) { 
+      _toast('Network error: $e', ok: false); 
+    }
   }
 
   void _showChangePwd() {
@@ -683,15 +791,17 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Widget _sheetField(String label, TextEditingController ctrl, IconData icon, TextInputType kb) {
+  Widget _sheetField(String label, TextEditingController ctrl, IconData icon, TextInputType kb, {int? maxLength, String? hintText}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey[600])),
         const SizedBox(height: 6),
         TextFormField(
-          controller: ctrl, keyboardType: kb,
+          controller: ctrl, keyboardType: kb, maxLength: maxLength,
           decoration: InputDecoration(
+            hintText: hintText,
+            counterText: '',
             prefixIcon: Icon(icon, size: 20, color: _kGreen),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
@@ -705,13 +815,15 @@ class _AccountScreenState extends State<AccountScreen>
   }
 
   Widget _dropdownField(String label, String? value, List<String> items, IconData icon, ValueChanged<String?> onChange) {
+    final String? safeValue = (value != null && items.contains(value)) ? value : null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey[600])),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: value, onChanged: onChange,
+          value: safeValue, 
+          onChanged: onChange,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, size: 20, color: const Color(0xFFDC2626)),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
@@ -719,7 +831,7 @@ class _AccountScreenState extends State<AccountScreen>
             filled: true, fillColor: const Color(0xFFF9FAFB),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          hint: const Text('Select'),
+          hint: const Text('Select Blood Group'),
           items: items.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
         ),
       ]),
@@ -931,6 +1043,7 @@ class _AccountScreenState extends State<AccountScreen>
                     cookie: widget.cookie,
                     age: widget.age,
                     sex: widget.sex,
+                    patientId: (_patientId != 'N/A' && _patientId.isNotEmpty) ? _patientId : widget.patientId,
                   )));
               } else if (idx == 1) {
                 Navigator.pushReplacement(context,
@@ -940,7 +1053,10 @@ class _AccountScreenState extends State<AccountScreen>
                     cookie: widget.cookie,
                     age: widget.age,
                     sex: widget.sex,
+                    patientId: (_patientId != 'N/A' && _patientId.isNotEmpty) ? _patientId : widget.patientId,
                   )));
+              } else if (idx == 2) {
+                _showHelp();
               }
             },
           ),
@@ -969,7 +1085,25 @@ class _AccountScreenState extends State<AccountScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _glassButton(Icons.arrow_back_ios_rounded, () => Navigator.pop(context)),
+                      _glassButton(Icons.arrow_back_ios_rounded, () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PatientDashboard(
+                                userName: widget.userName,
+                                location: widget.location,
+                                cookie: widget.cookie,
+                                age: widget.age,
+                                sex: widget.sex,
+                                patientId: (_patientId != 'N/A' && _patientId.isNotEmpty) ? _patientId : widget.patientId,
+                              ),
+                            ),
+                          );
+                        }
+                      }),
                       const Text('My Account',
                           style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
                       _glassButton(Icons.refresh_rounded, _load),
@@ -995,28 +1129,31 @@ class _AccountScreenState extends State<AccountScreen>
                         child: ClipOval(
                           child: Builder(
                             builder: (context) {
-                              if (_localAvatarPath != null) {
-                                return Image.file(File(_localAvatarPath!), fit: BoxFit.cover, width: 112, height: 112);
-                              }
-                              
                               final imageStr = _patient['image']?.toString();
-                              if (imageStr == null || imageStr.isEmpty) {
-                                return Center(child: Text(_initials, style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2)));
+                              if (imageStr != null && imageStr.isNotEmpty) {
+                                if (imageStr.startsWith('data:image')) {
+                                  final base64String = imageStr.split(',').last;
+                                  return Image.memory(base64Decode(base64String), fit: BoxFit.cover, width: 112, height: 112);
+                                } else if (imageStr.startsWith('http')) {
+                                  return Image.network(imageStr, fit: BoxFit.cover, width: 112, height: 112,
+                                    errorBuilder: (ctx, err, stack) => _buildFallbackAvatar());
+                                } else if (imageStr.length > 100 && !imageStr.startsWith('/')) {
+                                  return Image.memory(base64Decode(imageStr), fit: BoxFit.cover, width: 112, height: 112,
+                                    errorBuilder: (ctx, err, stack) => _buildFallbackAvatar());
+                                } else {
+                                  // Server URL: e.g. https://erp.gmhospitals.co.in/patient_image_mobile/{name}.jpg
+                                  return Image.network('${ApiConfig.imageBaseUrl}$imageStr', fit: BoxFit.cover, width: 112, height: 112,
+                                    errorBuilder: (ctx, err, stack) {
+                                      // Fallback to PHP API endpoint /patients/{id}/image
+                                      final targetId = _patientId != 'N/A' ? _patientId : widget.userName;
+                                      final fallbackUrl = '${ApiConfig.baseUrl}/patients/$targetId/image';
+                                      return Image.network(fallbackUrl, fit: BoxFit.cover, width: 112, height: 112,
+                                        errorBuilder: (ctx2, err2, stack2) => _buildFallbackAvatar());
+                                    });
+                                }
                               }
 
-                              if (imageStr.startsWith('data:image')) {
-                                final base64String = imageStr.split(',').last;
-                                return Image.memory(base64Decode(base64String), fit: BoxFit.cover, width: 112, height: 112);
-                              } else if (imageStr.startsWith('http')) {
-                                return Image.network(imageStr, fit: BoxFit.cover, width: 112, height: 112,
-                                  errorBuilder: (ctx, err, stack) => Center(child: Text(_initials, style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white))));
-                              } else if (imageStr.length > 100 && !imageStr.startsWith('/')) {
-                                return Image.memory(base64Decode(imageStr), fit: BoxFit.cover, width: 112, height: 112,
-                                  errorBuilder: (ctx, err, stack) => Center(child: Text(_initials, style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white))));
-                              } else {
-                                return Image.network('${ApiConfig.imageBaseUrl}$imageStr', fit: BoxFit.cover, width: 112, height: 112,
-                                  errorBuilder: (ctx, err, stack) => Center(child: Text(_initials, style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white))));
-                              }
+                              return _buildFallbackAvatar();
                             },
                           ),
                         ),
@@ -1305,8 +1442,6 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Widget _card(List<Widget> rows) => _premiumCard(rows);
-
   // ─── INFO ROW ─────────────────────────────────────────────────────────────
   Widget _infoRow(IconData icon, String label, String value, Color color,
       {bool isLast = false, bool copyable = false}) {
@@ -1429,11 +1564,11 @@ class _AccountScreenState extends State<AccountScreen>
     ]);
   }
 
-  // ─── SECURITY ─────────────────────────────────────────────────────────────
   Widget _buildSecurityCard() {
     return _premiumCard([
       _tapRow(Icons.lock_rounded,           'Change Password',  'Update your login credentials', _kBlue,                  _showChangePwd),
       _toggleRow(Icons.fingerprint_rounded, 'Biometric Login',  'Fingerprint or Face ID',        const Color(0xFF7C3AED), _bioEnabled, (v) => _toggleBiometric()),
+      _tapRow(Icons.emergency_rounded,      'Emergency Contact','Designate an emergency contact',const Color(0xFFEA580C), _showEmergency),
       _tapRow(Icons.devices_rounded,        'Active Sessions',  'Manage logged-in devices',      _kGreen,                 () => _toast('Session management — coming soon!'), isLast: true),
     ]);
   }
@@ -1565,4 +1700,3 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 }
-

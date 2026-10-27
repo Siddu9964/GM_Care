@@ -14,6 +14,8 @@ class AppointmentsScreen extends StatefulWidget {
   final String age;
   final String sex;
   final String cookie;
+  final String patientId;
+  final int initialTab;
 
   const AppointmentsScreen({
     super.key,
@@ -22,6 +24,8 @@ class AppointmentsScreen extends StatefulWidget {
     required this.age,
     required this.sex,
     required this.cookie,
+    this.patientId = '',
+    this.initialTab = 0,
   });
 
   @override
@@ -40,7 +44,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2, 
+      vsync: this, 
+      initialIndex: widget.initialTab.clamp(0, 1),
+    );
     _fetchAppointments();
   }
 
@@ -314,7 +322,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
                               const Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF64748B)),
                               const SizedBox(width: 4),
                               Text(
-                                date,
+                                time.isNotEmpty ? '$date • $time' : date,
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
                               ),
                             ],
@@ -352,6 +360,67 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
     );
   }
 
+  void _showSupportChatModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4)),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1F6B4A).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.chat_bubble_rounded, color: Color(0xFF1F6B4A), size: 36),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "GM Care Support & Help Desk",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A)),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              "Our hospital reception and support team are available 24/7 to assist you.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A)),
+              title: const Text("Reception Helpline", style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text("080-23180200 / 080-23180300"),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: const Icon(Icons.emergency_rounded, color: Colors.red),
+              title: const Text("24/7 Emergency Desk", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              subtitle: const Text("+91 99000 00000"),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+              onTap: () {},
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -359,6 +428,28 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1F6B4A), size: 20),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PatientDashboard(
+                    userName: widget.userName,
+                    location: widget.location,
+                    cookie: widget.cookie,
+                    age: widget.age,
+                    sex: widget.sex,
+                    patientId: widget.patientId,
+                  ),
+                ),
+              );
+            }
+          },
+        ),
         title: const Text('Appointments',
             style: TextStyle(color: Color(0xFF1F6B4A), fontWeight: FontWeight.w800)),
         iconTheme: const IconThemeData(color: Color(0xFF1F6B4A)),
@@ -396,6 +487,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
                   age: widget.age,
                   sex: widget.sex,
                   cookie: widget.cookie,
+                  patientId: widget.patientId,
+                  onClose: () => _tabController.animateTo(0),
+                  onSuccess: () {
+                    _tabController.animateTo(0);
+                    _fetchAppointments();
+                  },
                 ),
               ],
             ),
@@ -411,7 +508,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
                     cookie: widget.cookie,
                     age: widget.age,
                     sex: widget.sex,
+                    patientId: widget.patientId,
                   )));
+              } else if (idx == 2) {
+                _showSupportChatModal(context);
               } else if (idx == 3) {
                 Navigator.pushReplacement(context,
                   MaterialPageRoute(builder: (_) => AccountScreen(

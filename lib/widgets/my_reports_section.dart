@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../screens/report_detail_screen.dart';
+import '../screens/health_reports_screen.dart';
 
 class MyReportsSection extends StatefulWidget {
   final String userName;
@@ -126,9 +127,30 @@ class _MyReportsSectionState extends State<MyReportsSection> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
             ),
             if (_reports.isNotEmpty)
-              Text(
-                "View Files",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF1F6B4A)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HealthReportsScreen(
+                        userName: widget.userName,
+                        location: widget.location,
+                        cookie: widget.cookie,
+                      ),
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text(
+                      "View Files",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A)),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1F6B4A)),
+                  ],
+                ),
               )
           ],
         ),

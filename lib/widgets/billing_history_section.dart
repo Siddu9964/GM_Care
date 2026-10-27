@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../screens/billing_history_screen.dart';
 import '../screens/bill_receipt_screen.dart';
 
 class BillingHistorySection extends StatefulWidget {
@@ -110,9 +111,30 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
             ),
             if (_bills.isNotEmpty)
-              Text(
-                "See All",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF045D4B)),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BillingHistoryScreen(
+                        userName: widget.userName,
+                        location: widget.location,
+                        cookie: widget.cookie,
+                      ),
+                    ),
+                  );
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Text(
+                      "See All",
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF045D4B)),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF045D4B)),
+                  ],
+                ),
               )
           ],
         ),
