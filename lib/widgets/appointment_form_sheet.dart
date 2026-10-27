@@ -7,18 +7,18 @@ import '../config/api_config.dart';
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
 const _kPrimary   = Color(0xFF1F6B4A);
-const _kPrimaryLt = Color(0xFF1F6B4A);
-const _kAccent    = Color(0xFF34C77B);
+const _kPrimaryLt = Color(0xFF26875B);
+const _kAccent    = Color(0xFF1F6B4A);
 const _kSurface   = Color(0xFFFFFFFF);
 const _kBg        = Color(0xFFF3EFE6);
-const _kBorder    = Color(0xFFE2EBE6);
-const _kText1     = Color(0xFF1F6B4A);
-const _kText2     = Color(0xFF4A6358);
+const _kBorder    = Color(0xFFDED8CB);
+const _kText1     = Color(0xFF143B2A);
+const _kText2     = Color(0xFF5A6E64);
 const _kText3     = Color(0xFF8DA89C);
-const _kSelected  = Color(0xFFDFF5EB);
-const _kSelBd     = Color(0xFF34C77B);
+const _kSelected  = Color(0xFFEBE6DC);
+const _kSelBd     = Color(0xFF1F6B4A);
 const _kError     = Color(0xFFE53935);
-const _kGold      = Color(0xFFF59E0B);
+const _kGold      = Color(0xFF1F6B4A);
 
 class AppointmentFormSheet extends StatefulWidget {
   final String userName;
@@ -92,14 +92,14 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
     '02:30 PM', '03:00 PM', '04:00 PM', '04:30 PM',
   ];
   final List<Map<String, dynamic>> _reasons = [
-    {'label': 'General Checkup',  'icon': Icons.health_and_safety_outlined, 'color': Color(0xFF0284C7)},
-    {'label': 'Follow-up',        'icon': Icons.replay_outlined,             'color': Color(0xFF7C3AED)},
-    {'label': 'Report Review',    'icon': Icons.folder_open_outlined,        'color': Color(0xFF0D9488)},
-    {'label': 'Emergency',        'icon': Icons.emergency_outlined,          'color': Color(0xFFDC2626)},
-    {'label': 'Vaccination',      'icon': Icons.vaccines_outlined,           'color': Color(0xFF16A34A)},
-    {'label': 'Lab Test',         'icon': Icons.science_outlined,            'color': Color(0xFFEA580C)},
-    {'label': 'Surgery Consult',  'icon': Icons.local_hospital_outlined,     'color': Color(0xFF9333EA)},
-    {'label': 'Other',            'icon': Icons.edit_note_outlined,          'color': Color(0xFF64748B)},
+    {'label': 'General Checkup',  'icon': Icons.health_and_safety_outlined, 'color': _kPrimary},
+    {'label': 'Follow-up',        'icon': Icons.replay_outlined,             'color': _kPrimary},
+    {'label': 'Report Review',    'icon': Icons.folder_open_outlined,        'color': _kPrimary},
+    {'label': 'Emergency',        'icon': Icons.emergency_outlined,          'color': _kPrimary},
+    {'label': 'Vaccination',      'icon': Icons.vaccines_outlined,           'color': _kPrimary},
+    {'label': 'Lab Test',         'icon': Icons.science_outlined,            'color': _kPrimary},
+    {'label': 'Surgery Consult',  'icon': Icons.local_hospital_outlined,     'color': _kPrimary},
+    {'label': 'Other',            'icon': Icons.edit_note_outlined,          'color': _kPrimary},
   ];
 
   // Animations
@@ -1171,9 +1171,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
               return true;
             }).toList().map((t) {
               final isSel = _selectedTime == t;
-              // Morning / Afternoon / Evening grouping colour
-              final isAM  = t.endsWith('AM');
-              final accent = isAM ? _kPrimary : const Color(0xFF7C3AED);
+              final accent = _kPrimary;
               final isBooked = _bookedTimes.contains(t);
               
               return GestureDetector(

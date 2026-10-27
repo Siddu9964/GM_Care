@@ -139,15 +139,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     switch (category.toLowerCase()) {
       case 'appointment':
         icon = Icons.calendar_month_rounded;
-        iconColor = const Color(0xFF2563EB); // Blue
+        iconColor = const Color(0xFF1F6B4A);
         break;
       case 'billing':
         icon = Icons.receipt_long_rounded;
-        iconColor = const Color(0xFFDC2626); // Red
+        iconColor = const Color(0xFF1F6B4A);
         break;
       default:
         icon = Icons.notifications_active_rounded;
-        iconColor = const Color(0xFF1F6B4A); // Green
+        iconColor = const Color(0xFF1F6B4A);
     }
 
     return Container(

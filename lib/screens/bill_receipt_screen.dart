@@ -110,22 +110,23 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3EAE3), // Light cream background from image
+      backgroundColor: const Color(0xFFF3EFE6),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 1,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF143B2A)),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             }
           },
         ),
-        title: const Text("Receipt", style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        title: const Text("Receipt", style: TextStyle(color: Color(0xFF143B2A), fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.print_outlined),
+            icon: const Icon(Icons.print_outlined, color: Color(0xFF143B2A)),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -136,7 +137,7 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.share_outlined),
+            icon: const Icon(Icons.share_outlined, color: Color(0xFF143B2A)),
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -149,7 +150,7 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
           : _errorMsg.isNotEmpty
               ? Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.red)))
               : _buildReceiptSheet(),
@@ -167,9 +168,10 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFDED8CB)),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -186,14 +188,14 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
                     children: [
                       const Text(
                         "GM Hospital",
-                        style: TextStyle(color: Color(0xFF166534), fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                        style: TextStyle(color: Color(0xFF1F6B4A), fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         widget.location == 'Nagarabhavi' 
                           ? "611 & 612, Nagarabhavi Main Rd, Vinayaka Layout,\nPapreddy Palya, 2nd Stage, Naagarabhaavi,\nBengaluru, Karnataka 560072\nOPD Billing Department"
                           : "#335, 8th Main, 3rd Stage, 4th Block,\nBasaveshwaranagar, Bengaluru, Karnataka 560079\nOPD Billing Department",
-                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 10, height: 1.5),
+                        style: const TextStyle(color: Color(0xFF5A6E64), fontSize: 10, height: 1.5),
                       ),
                     ],
                   ),
@@ -204,17 +206,17 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
                   children: [
                     const Text(
                       "PAYMENT RECEIPT",
-                      style: TextStyle(color: Color(0xFF1E293B), fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                      style: TextStyle(color: Color(0xFF143B2A), fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 0.5),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       b['bill_id'] ?? '',
-                      style: const TextStyle(color: Color(0xFF0F766E), fontSize: 13, fontWeight: FontWeight.w700),
+                      style: const TextStyle(color: Color(0xFF1F6B4A), fontSize: 13, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "${_formatDate(b['bill_date'])} - ${_formatTime(b['bill_time'])}",
-                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                      style: const TextStyle(color: Color(0xFF5A6E64), fontSize: 11),
                     ),
                   ],
                 ),
@@ -224,7 +226,7 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
             const SizedBox(height: 12),
             Stack(
               children: [
-                const Divider(color: Color(0xFF166534), thickness: 1.5),
+                const Divider(color: Color(0xFF1F6B4A), thickness: 1.5),
                 if (isPaid) 
                   Positioned(
                     right: 20,
@@ -236,7 +238,7 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF166534).withOpacity(0.15),
+                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.15),
                           letterSpacing: 4,
                         ),
                       ),
@@ -250,9 +252,9 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                color: const Color(0xFFFAF8F5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDED8CB)),
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -308,7 +310,7 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
             const SizedBox(height: 24),
 
             // Billing Items Table
-            const Text("BILLING ITEMS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 1)),
+            const Text("BILLING ITEMS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF5A6E64), letterSpacing: 1)),
             const SizedBox(height: 8),
             _buildBillingItemsTable(b['items'] ?? []),
             
@@ -326,7 +328,7 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
                       const SizedBox(height: 6),
                       _buildSummaryRow("Discount", "₹${_formatAmount(b['discount_amount'])}", false),
                       const SizedBox(height: 8),
-                      const Divider(color: Color(0xFF166534), thickness: 1.5, height: 1),
+                      const Divider(color: Color(0xFF1F6B4A), thickness: 1.5, height: 1),
                       const SizedBox(height: 8),
                       _buildSummaryRow("Receipt Amount", "₹${_formatAmount(b['grand_total'])}", true),
                       const SizedBox(height: 6),
@@ -342,17 +344,17 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF0FDF4), // Light green tint
-                border: Border.all(color: const Color(0xFF86EFAC)),
-                borderRadius: BorderRadius.circular(4),
+                color: const Color(0xFF1F6B4A).withValues(alpha: 0.05),
+                border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.2)),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Text("AMOUNT IN WORDS: ", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF334155))),
+                  const Text("AMOUNT IN WORDS: ", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF143B2A))),
                   Expanded(
                     child: Text(
                       _numberToWords(double.tryParse(b['grand_total'].toString()) ?? 0.0),
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF143B2A)),
                     ),
                   ),
                 ],
@@ -361,14 +363,14 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
             const SizedBox(height: 24),
 
             // Receipt Details Table
-            const Text("RECEIPT DETAILS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 1)),
+            const Text("RECEIPT DETAILS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF5A6E64), letterSpacing: 1)),
             const SizedBox(height: 8),
             _buildReceiptTable(b['payments'] ?? []),
             
             const SizedBox(height: 40),
             
             // Footer
-            const Divider(color: Color(0xFFCBD5E1)),
+            const Divider(color: Color(0xFFDED8CB)),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -378,12 +380,12 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Printed on: ${_formatDateTimeNow()}", style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8))),
+                      Text("Printed on: ${_formatDateTimeNow()}", style: const TextStyle(fontSize: 9, color: Color(0xFF5A6E64))),
                       const SizedBox(height: 2),
-                      Text("Printed by: ${b['created_by'] ?? 'System'}", style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8))),
+                      Text("Printed by: ${b['created_by'] ?? 'System'}", style: const TextStyle(fontSize: 9, color: Color(0xFF5A6E64))),
                       const SizedBox(height: 16),
-                      const Text("Thank you for choosing GM Hospital.", style: TextStyle(fontSize: 9, color: Color(0xFF64748B))),
-                      const Text("This is a computer-generated bill and does not require a signature.", style: TextStyle(fontSize: 9, color: Color(0xFF64748B))),
+                      const Text("Thank you for choosing GM Hospital.", style: TextStyle(fontSize: 9, color: Color(0xFF5A6E64))),
+                      const Text("This is a computer-generated bill and does not require a signature.", style: TextStyle(fontSize: 9, color: Color(0xFF5A6E64))),
                     ],
                   ),
                 ),
@@ -392,9 +394,9 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
                   width: 100,
                   padding: const EdgeInsets.only(top: 8),
                   decoration: const BoxDecoration(
-                    border: Border(top: BorderSide(color: Color(0xFF64748B))),
+                    border: Border(top: BorderSide(color: Color(0xFF5A6E64))),
                   ),
-                  child: const Center(child: Text("Authorized Signatory", style: TextStyle(fontSize: 9, color: Color(0xFF64748B)), textAlign: TextAlign.center)),
+                  child: const Center(child: Text("Authorized Signatory", style: TextStyle(fontSize: 9, color: Color(0xFF5A6E64)), textAlign: TextAlign.center)),
                 )
               ],
             )
@@ -410,10 +412,10 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
       children: [
         SizedBox(
           width: 90,
-          child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF94A3B8))),
+          child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF5A6E64))),
         ),
         Expanded(
-          child: Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+          child: Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF143B2A))),
         ),
       ],
     );
@@ -422,14 +424,14 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
   Widget _buildBillingItemsTable(List<dynamic> items) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+        border: Border(bottom: BorderSide(color: Color(0xFFDED8CB))),
       ),
       child: Column(
         children: [
           // Table Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const Color(0xFF166534), // Dark Green
+            color: const Color(0xFF1F6B4A),
             child: Row(
               children: const [
                 SizedBox(width: 20, child: Text("#", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
@@ -450,15 +452,15 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(width: 20, child: Text(idx.toString(), style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
+                  SizedBox(width: 20, child: Text(idx.toString(), style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
                   Expanded(
                     flex: 3, 
-                    child: Text("${item['item_name']} ${item['item_code'] != null ? '(${item['item_code']})' : ''}", style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)))
+                    child: Text("${item['item_name']} ${item['item_code'] != null ? '(${item['item_code']})' : ''}", style: const TextStyle(fontSize: 11, color: Color(0xFF143B2A)))
                   ),
-                  Expanded(flex: 1, child: Text(_formatAmount(item['quantity']), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
-                  Expanded(flex: 2, child: Text("₹${_formatAmount(item['unit_price'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
-                  Expanded(flex: 2, child: Text("₹${_formatAmount(item['discount_amount'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
-                  Expanded(flex: 2, child: Text("₹${_formatAmount(item['total_price'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)))),
+                  Expanded(flex: 1, child: Text(_formatAmount(item['quantity']), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
+                  Expanded(flex: 2, child: Text("₹${_formatAmount(item['unit_price'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
+                  Expanded(flex: 2, child: Text("₹${_formatAmount(item['discount_amount'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
+                  Expanded(flex: 2, child: Text("₹${_formatAmount(item['total_price'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF143B2A)))),
                 ],
               ),
             );
@@ -472,27 +474,27 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: isBold ? 12 : 11, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600, color: isGreen ? const Color(0xFF166534) : const Color(0xFF64748B))),
-        Text(value, style: TextStyle(fontSize: isBold ? 14 : 12, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600, color: isGreen ? const Color(0xFF166534) : const Color(0xFF1E293B))),
+        Text(label, style: TextStyle(fontSize: isBold ? 12 : 11, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600, color: isGreen ? const Color(0xFF1F6B4A) : const Color(0xFF5A6E64))),
+        Text(value, style: TextStyle(fontSize: isBold ? 14 : 12, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600, color: isGreen ? const Color(0xFF1F6B4A) : const Color(0xFF143B2A))),
       ],
     );
   }
 
   Widget _buildReceiptTable(List<dynamic> payments) {
     if (payments.isEmpty) {
-      return const Text("No payment records found.", style: TextStyle(fontSize: 11, color: Color(0xFF64748B)));
+      return const Text("No payment records found.", style: TextStyle(fontSize: 11, color: Color(0xFF5A6E64)));
     }
     
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+        border: Border(bottom: BorderSide(color: Color(0xFFDED8CB))),
       ),
       child: Column(
         children: [
           // Table Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const Color(0xFF166534), // Dark Green
+            color: const Color(0xFF1F6B4A),
             child: Row(
               children: const [
                 SizedBox(width: 20, child: Text("#", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
@@ -512,11 +514,11 @@ class _BillReceiptScreenState extends State<BillReceiptScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(width: 20, child: Text(idx.toString(), style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
-                  Expanded(flex: 3, child: Text(p['receipt_no'] ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)))),
-                  Expanded(flex: 3, child: Text(_formatDate(p['payment_date']), style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
-                  Expanded(flex: 3, child: Text(p['payment_mode'] ?? 'Cash', style: const TextStyle(fontSize: 11, color: Color(0xFF475569)))),
-                  Expanded(flex: 2, child: Text("₹${_formatAmount(p['amount'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)))),
+                  SizedBox(width: 20, child: Text(idx.toString(), style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
+                  Expanded(flex: 3, child: Text(p['receipt_no'] ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF143B2A)))),
+                  Expanded(flex: 3, child: Text(_formatDate(p['payment_date']), style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
+                  Expanded(flex: 3, child: Text(p['payment_mode'] ?? 'Cash', style: const TextStyle(fontSize: 11, color: Color(0xFF5A6E64)))),
+                  Expanded(flex: 2, child: Text("₹${_formatAmount(p['amount'])}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF143B2A)))),
                 ],
               ),
             );

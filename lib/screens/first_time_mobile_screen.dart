@@ -8,13 +8,13 @@ import '../config/api_config.dart';
 import 'patient_dashboard.dart';
 import 'create_account_screen.dart';
 
-const _kPrimary      = Color(0xFF14532D);
-const _kPrimaryLight = Color(0xFF16A34A);
-const _kBg           = Color(0xFFF8FAFC);
+const _kPrimary      = Color(0xFF1F6B4A);
+const _kPrimaryLight = Color(0xFF26875B);
+const _kBg           = Color(0xFFF3EFE6);
 const _kSurface      = Color(0xFFFFFFFF);
-const _kTextDark     = Color(0xFF0F172A);
-const _kTextMuted    = Color(0xFF64748B);
-const _kBorder       = Color(0xFFE2E8F0);
+const _kTextDark     = Color(0xFF143B2A);
+const _kTextMuted    = Color(0xFF5A6E64);
+const _kBorder       = Color(0xFFDED8CB);
 
 enum _FlowState { enterPhone, login, setPassword }
 
@@ -62,11 +62,11 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
     super.initState();
     _animCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
-      value: 1.0,
+      duration: const Duration(milliseconds: 600),
+      value: 0.0,
     );
-    _fadeAnim  = Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut));
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.02), end: Offset.zero).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
+    _fadeAnim  = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _animCtrl.forward();
 
     if (widget.initialBranch != null && widget.initialBranch!.isNotEmpty) {
@@ -149,9 +149,6 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
       if (foundPatient == null) {
         Navigator.of(context).push(_smoothRoute(CreateAccountScreen(branchName: 'Nagarabhavi', initialPhone: cleanPhone)));
       } else {
-        // Known patient found in hospital database.
-        // By default, display the normal login form (Password field).
-        // ONLY if the password is confirmed to NOT be set, show setPassword.
         final dynamic hp = foundPatient['has_password'];
         final dynamic passVal = foundPatient['password'];
         final bool passwordNotSet = (hp == false || hp == 0 || hp == 'false' || hp == '0') ||
@@ -259,11 +256,11 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
 
   PageRouteBuilder<dynamic> _smoothRoute(Widget page) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 350),
+      transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, anim, secondaryAnimation, child) => FadeTransition(
         opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-        child: SlideTransition(position: Tween<Offset>(begin: const Offset(0.04, 0), end: Offset.zero).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)), child: child),
+        child: SlideTransition(position: Tween<Offset>(begin: const Offset(0.05, 0), end: Offset.zero).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)), child: child),
       ),
     );
   }
@@ -279,7 +276,7 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
   String get _buttonLabel {
     switch (_flowState) {
       case _FlowState.enterPhone:  return 'Continue';
-      case _FlowState.login:       return 'Log In';
+      case _FlowState.login:       return 'Log In to Account';
       case _FlowState.setPassword: return 'Set Password & Sign In';
     }
   }
@@ -289,249 +286,269 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       backgroundColor: _kBg,
-      body: SafeArea(
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, bottomInset > 0 ? bottomInset + 20 : 24),
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: SlideTransition(
-                  position: _slideAnim,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(20), border: Border.all(color: const Color(0xFFBBF7D0))),
-                          child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Container(width: 8, height: 8, decoration: const BoxDecoration(color: _kPrimaryLight, shape: BoxShape.circle)),
-                            const SizedBox(width: 8),
-                            Text('GM HOSPITALS · BANGALORE', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: _kPrimary)),
-                          ]),
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
-                          width: 84, height: 84,
-                          decoration: BoxDecoration(color: _kSurface, shape: BoxShape.circle, border: Border.all(color: _kBorder, width: 1.5), boxShadow: [BoxShadow(color: _kPrimary.withValues(alpha: 0.08), blurRadius: 20, offset: const Offset(0, 8))]),
-                          child: ClipOval(child: Padding(padding: const EdgeInsets.all(12), child: Image.asset('assetes/gm_logoo.png', fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_hospital_rounded, color: _kPrimary, size: 42)))),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          _flowState == _FlowState.enterPhone ? 'Your Health,\nJust a Tap Away.' : _flowState == _FlowState.login ? 'Welcome Back!' : 'Create Your Password',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w900, color: _kTextDark, height: 1.2, letterSpacing: -0.6),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          _flowState == _FlowState.enterPhone
-                              ? 'Access appointments, prescriptions, and health records securely with your mobile number.'
-                              : _flowState == _FlowState.login
-                                  ? 'Enter your password to access your health records.'
-                                  : 'Your hospital record was found. Set a password to access GM Care.',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: _kTextMuted, height: 1.5),
-                        ),
-                        const SizedBox(height: 32),
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeOutCubic,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
-                            decoration: BoxDecoration(color: _kSurface, borderRadius: BorderRadius.circular(20), border: Border.all(color: _kBorder), boxShadow: [BoxShadow(color: const Color(0xFF0F172A).withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 10))]),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (_flowState != _FlowState.enterPhone) ...[_buildPatientBanner(), const SizedBox(height: 20)],
-                                Text('Mobile Number', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: _kTextDark)),
-                                const SizedBox(height: 4),
-                                Text('Enter your 10-digit number to proceed', style: GoogleFonts.inter(fontSize: 12, color: _kTextMuted)),
-                                const SizedBox(height: 12),
-                                Container(
-                                  height: 54,
-                                  decoration: BoxDecoration(
-                                    color: _flowState != _FlowState.enterPhone ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: _phoneFocus.hasFocus ? _kPrimary : _kBorder, width: _phoneFocus.hasFocus ? 1.5 : 1.0),
+      body: Stack(
+        children: [
+          Positioned(
+            top: -60,
+            right: -60,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _kPrimary.withValues(alpha: 0.04),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _kPrimary.withValues(alpha: 0.03),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: GestureDetector(
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, 16, 24, bottomInset > 0 ? bottomInset + 20 : 32),
+                  child: FadeTransition(
+                    opacity: _fadeAnim,
+                    child: SlideTransition(
+                      position: _slideAnim,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 420),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: _kPrimary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(color: _kPrimary.withValues(alpha: 0.2)),
+                                boxShadow: [
+                                  BoxShadow(color: _kPrimary.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))
+                                ]
+                              ),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Container(width: 8, height: 8, decoration: const BoxDecoration(color: _kPrimaryLight, shape: BoxShape.circle)),
+                                const SizedBox(width: 10),
+                                Text('GM HOSPITALS · BANGALORE', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.0, color: _kPrimary)),
+                              ]),
+                            ),
+                            const SizedBox(height: 32),
+                            Container(
+                              width: 200, height: 180,
+                              decoration: BoxDecoration(
+                                color: _kSurface,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: _kBorder.withValues(alpha: 0.8), width: 3),
+                                boxShadow: [
+                                  BoxShadow(color: _kPrimary.withValues(alpha: 0.12), blurRadius: 40, offset: const Offset(0, 15)),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(0),
+                                  child: Image.asset(
+                                    'assetes/gm_logoo.png',
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_hospital_rounded, color: _kPrimary, size: 100),
                                   ),
-                                  child: Row(children: [
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            Text(
+                              _flowState == _FlowState.enterPhone ? 'Your Health,\nJust a Tap Away.' : _flowState == _FlowState.login ? 'Welcome Back!' : 'Secure Your Account',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(fontSize: 30, fontWeight: FontWeight.w900, color: _kTextDark, height: 1.15, letterSpacing: -0.8),
+                            ),
+                            const SizedBox(height: 12),
+                            const SizedBox(height: 36),
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOutCubic,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                decoration: BoxDecoration(
+                                  color: _kSurface,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(color: _kBorder),
+                                  boxShadow: [
+                                    BoxShadow(color: const Color(0xFF0F172A).withValues(alpha: 0.06), blurRadius: 30, offset: const Offset(0, 12))
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (_flowState != _FlowState.enterPhone) ...[_buildPatientBanner(), const SizedBox(height: 24)],
+                                    Text('Mobile Number', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: _kTextDark)),
+                                    const SizedBox(height: 12),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                                      decoration: const BoxDecoration(border: Border(right: BorderSide(color: _kBorder))),
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                        color: _flowState != _FlowState.enterPhone ? const Color(0xFFEBE6DC) : const Color(0xFFFAF8F5),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: _phoneFocus.hasFocus ? _kPrimary : _kBorder, width: _phoneFocus.hasFocus ? 1.5 : 1.0),
+                                      ),
                                       child: Row(children: [
-                                        const Text('🇮🇳', style: TextStyle(fontSize: 15)),
-                                        const SizedBox(width: 4),
-                                        Text('+91', style: GoogleFonts.inter(fontSize: 14.5, fontWeight: FontWeight.w700, color: _kTextDark)),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                                          decoration: const BoxDecoration(border: Border(right: BorderSide(color: _kBorder))),
+                                          child: Row(children: [
+                                            const Text('🇮🇳', style: TextStyle(fontSize: 16)),
+                                            const SizedBox(width: 8),
+                                            Text('+91', style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: _kTextDark)),
+                                          ]),
+                                        ),
+                                        Expanded(child: TextField(
+                                          controller: _phoneCtrl, focusNode: _phoneFocus,
+                                          keyboardType: TextInputType.phone,
+                                          enabled: _flowState == _FlowState.enterPhone,
+                                          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+                                          style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: _flowState != _FlowState.enterPhone ? _kTextMuted : _kTextDark),
+                                          decoration: InputDecoration(
+                                            hintText: '98765 43210',
+                                            hintStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w400, letterSpacing: 0.5, color: const Color(0xFF94A3B8)),
+                                            border: InputBorder.none,
+                                            enabledBorder: InputBorder.none,
+                                            focusedBorder: InputBorder.none,
+                                            disabledBorder: InputBorder.none,
+                                            errorBorder: InputBorder.none,
+                                            filled: false,
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                                          ),
+                                          onChanged: (_) { if (_errorMsg != null) setState(() => _errorMsg = null); },
+                                          onSubmitted: (_) => _onContinue(),
+                                        )),
+                                        if (_flowState == _FlowState.enterPhone && _phoneCtrl.text.isNotEmpty)
+                                          IconButton(icon: const Icon(Icons.cancel_rounded, size: 20, color: Color(0xFF94A3B8)), onPressed: () { _phoneCtrl.clear(); setState(() => _errorMsg = null); }),
+                                        if (_flowState != _FlowState.enterPhone)
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 8),
+                                            child: TextButton(
+                                              onPressed: _resetToPhoneEntry,
+                                              style: TextButton.styleFrom(
+                                                foregroundColor: _kPrimary,
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                minimumSize: Size.zero,
+                                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                backgroundColor: _kPrimary.withValues(alpha: 0.08),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                              ),
+                                              child: Text('Change', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
+                                            ),
+                                          ),
                                       ]),
                                     ),
-                                    Expanded(child: TextField(
-                                      controller: _phoneCtrl, focusNode: _phoneFocus,
-                                      keyboardType: TextInputType.phone,
-                                      enabled: _flowState == _FlowState.enterPhone,
-                                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
-                                      style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: _flowState != _FlowState.enterPhone ? _kTextMuted : _kTextDark),
-                                      decoration: InputDecoration(hintText: '98765 43210', hintStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w400, letterSpacing: 0.5, color: const Color(0xFF94A3B8)), border: InputBorder.none, contentPadding: const EdgeInsets.symmetric(horizontal: 10)),
-                                      onChanged: (_) { if (_errorMsg != null) setState(() => _errorMsg = null); },
-                                      onSubmitted: (_) => _onContinue(),
-                                    )),
-                                    if (_flowState == _FlowState.enterPhone && _phoneCtrl.text.isNotEmpty)
-                                      IconButton(icon: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF94A3B8)), onPressed: () { _phoneCtrl.clear(); setState(() => _errorMsg = null); }),
-                                    if (_flowState != _FlowState.enterPhone)
+                                    if (_flowState == _FlowState.login) ...[
+                                      const SizedBox(height: 24),
+                                      Text('Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: _kTextDark)),
+                                      const SizedBox(height: 12),
+                                      _buildPasswordField(controller: _passCtrl, focusNode: _passFocus, obscure: _obscurePass, hint: 'Enter your password', onToggle: () => setState(() => _obscurePass = !_obscurePass), onSubmit: _login),
                                       Padding(
-                                        padding: const EdgeInsets.only(right: 6),
+                                        padding: const EdgeInsets.only(top: 10),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() { _flowState = _FlowState.setPassword; _errorMsg = null; });
+                                                WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context).requestFocus(_newPassFocus));
+                                              },
+                                              style: TextButton.styleFrom(foregroundColor: _kPrimary, padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                                              child: Text('Forgot password?', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    if (_flowState == _FlowState.setPassword) ...[
+                                      const SizedBox(height: 24),
+                                      Text('New Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: _kTextDark)),
+                                      const SizedBox(height: 12),
+                                      _buildPasswordField(controller: _newPassCtrl, focusNode: _newPassFocus, obscure: _obscureNew, hint: 'Create a strong password', onToggle: () => setState(() => _obscureNew = !_obscureNew), onSubmit: () => FocusScope.of(context).requestFocus(_confirmPassFocus)),
+                                      const SizedBox(height: 20),
+                                      Text('Confirm Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: _kTextDark)),
+                                      const SizedBox(height: 12),
+                                      _buildPasswordField(controller: _confirmPassCtrl, focusNode: _confirmPassFocus, obscure: _obscureConfirm, hint: 'Re-enter your password', onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm), onSubmit: _setPasswordAndLogin),
+                                      const SizedBox(height: 10),
+                                      Align(
+                                        alignment: Alignment.centerRight,
                                         child: TextButton(
-                                          onPressed: _resetToPhoneEntry,
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: _kPrimary,
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          ),
-                                          child: Text('Change', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700)),
-                                        ),
-                                      ),
-                                  ]),
-                                ),
-                                if (_flowState == _FlowState.login) ...[
-                                  const SizedBox(height: 20),
-                                  Text('Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: _kTextDark)),
-                                  const SizedBox(height: 10),
-                                  _buildPasswordField(controller: _passCtrl, focusNode: _passFocus, obscure: _obscurePass, hint: 'Enter your password', onToggle: () => setState(() => _obscurePass = !_obscurePass), onSubmit: _login),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Flexible(
-                                          child: TextButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                _flowState = _FlowState.setPassword;
-                                                _errorMsg = null;
-                                              });
-                                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                                FocusScope.of(context).requestFocus(_newPassFocus);
-                                              });
-                                            },
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: _kTextMuted,
-                                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            ),
-                                            child: Text(
-                                              'First time? Set password',
-                                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        TextButton(
                                           onPressed: () {
-                                            setState(() {
-                                              _flowState = _FlowState.setPassword;
-                                              _errorMsg = null;
-                                            });
-                                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                                              FocusScope.of(context).requestFocus(_newPassFocus);
-                                            });
+                                            setState(() { _flowState = _FlowState.login; _errorMsg = null; });
+                                            WidgetsBinding.instance.addPostFrameCallback((_) => FocusScope.of(context).requestFocus(_passFocus));
                                           },
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: _kPrimary,
-                                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
-                                            minimumSize: Size.zero,
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          ),
-                                          child: Text('Forgot password?', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                                          style: TextButton.styleFrom(foregroundColor: _kPrimary, padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                                          child: Text('Already have a password? Sign in', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800)),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                if (_flowState == _FlowState.setPassword) ...[
-                                  const SizedBox(height: 20),
-                                  Text('New Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: _kTextDark)),
-                                  const SizedBox(height: 10),
-                                  _buildPasswordField(controller: _newPassCtrl, focusNode: _newPassFocus, obscure: _obscureNew, hint: 'Create a strong password', onToggle: () => setState(() => _obscureNew = !_obscureNew), onSubmit: () => FocusScope.of(context).requestFocus(_confirmPassFocus)),
-                                  const SizedBox(height: 16),
-                                  Text('Confirm Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: _kTextDark)),
-                                  const SizedBox(height: 10),
-                                  _buildPasswordField(controller: _confirmPassCtrl, focusNode: _confirmPassFocus, obscure: _obscureConfirm, hint: 'Re-enter your password', onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm), onSubmit: _setPasswordAndLogin),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _flowState = _FlowState.login;
-                                          _errorMsg = null;
-                                        });
-                                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          FocusScope.of(context).requestFocus(_passFocus);
-                                        });
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: _kPrimary,
-                                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
-                                      child: Text('Already have a password? Sign in', style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                                    ],
+                                    if (_errorMsg != null) ...[
+                                      const SizedBox(height: 20),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFECACA))),
+                                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                          const Icon(Icons.error_rounded, color: Color(0xFFDC2626), size: 18),
+                                          const SizedBox(width: 10),
+                                          Expanded(child: Text(_errorMsg!, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFFB91C1C), height: 1.4))),
+                                        ]),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 28),
+                                    SizedBox(
+                                      width: double.infinity, height: 56,
+                                      child: ElevatedButton(
+                                        onPressed: _isLoading ? null : _primaryAction,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: _kPrimary,
+                                          foregroundColor: Colors.white,
+                                          disabledBackgroundColor: _kPrimary.withValues(alpha: 0.6),
+                                          elevation: 2,
+                                          shadowColor: _kPrimary.withValues(alpha: 0.3),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+                                        ),
+                                        child: _isLoading
+                                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                                            : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                                Text(_buttonLabel, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+                                                const SizedBox(width: 10),
+                                                Icon(_flowState == _FlowState.login ? Icons.login_rounded : _flowState == _FlowState.setPassword ? Icons.verified_user_rounded : Icons.arrow_forward_rounded, size: 20),
+                                              ]),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                                if (_errorMsg != null) ...[
-                                  const SizedBox(height: 14),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                    decoration: BoxDecoration(color: const Color(0xFFFEF2F2), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFFECACA))),
-                                    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                      const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 17),
-                                      const SizedBox(width: 8),
-                                      Expanded(child: Text(_errorMsg!, style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w500, color: const Color(0xFFB91C1C), height: 1.3))),
-                                    ]),
-                                  ),
-                                ],
-                                const SizedBox(height: 20),
-                                SizedBox(
-                                  width: double.infinity, height: 52,
-                                  child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _primaryAction,
-                                    style: ElevatedButton.styleFrom(backgroundColor: _kPrimary, foregroundColor: Colors.white, disabledBackgroundColor: _kPrimary.withValues(alpha: 0.6), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-                                    child: _isLoading
-                                        ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.4))
-                                        : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                                            Text(_buttonLabel, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 0.2)),
-                                            const SizedBox(width: 8),
-                                            Icon(_flowState == _FlowState.login ? Icons.login_rounded : _flowState == _FlowState.setPassword ? Icons.check_rounded : Icons.arrow_forward_rounded, size: 18),
-                                          ]),
-                                  ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 32),
+                            // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            //   const Icon(Icons.security_rounded, size: 14, color: Color(0xFF64748B)),
+                            //   const SizedBox(width: 8),
+                            //   // Text('Secure 256-bit Encrypted Portal', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: _kTextMuted)),
+                            // ]),
+                            const SizedBox(height: 16),
+                            // Wrap(alignment: WrapAlignment.center, spacing: 10, runSpacing: 10, children: [_buildBranchChip('Nagarabhavi'), _buildBranchChip('Basaveshwaranagar')]),
+                          ],
                         ),
-                        const SizedBox(height: 28),
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          const Icon(Icons.lock_outline_rounded, size: 14, color: Color(0xFF64748B)),
-                          const SizedBox(width: 6),
-                          Text('256-bit Encrypted · Official GM Care Portal', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w500, color: _kTextMuted)),
-                        ]),
-                        const SizedBox(height: 12),
-                        Wrap(alignment: WrapAlignment.center, spacing: 8, children: [_buildBranchChip('Nagarabhavi'), _buildBranchChip('Basaveshwaranagar')]),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -542,82 +559,37 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
     final name = '$fn $ln'.trim();
     final phone = _phoneCtrl.text.trim();
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFDCFCE7),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFBBF7D0)),
+        color: _kPrimary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _kPrimary.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: _kPrimary.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.person_rounded, color: _kPrimary, size: 20),
+            width: 44, height: 44,
+            decoration: BoxDecoration(color: _kPrimary.withValues(alpha: 0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.person_pin_rounded, color: _kPrimary, size: 24),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  name.isNotEmpty ? name : 'GM Hospital Patient',
-                  style: GoogleFonts.inter(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: _kTextDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 3),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    Text(
-                      '+91 $phone',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _kTextMuted,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _kPrimary.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        _foundBranch,
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: _kPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                Text(name.isNotEmpty ? name : 'Hospital Patient', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: _kTextDark), maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 4),
+                Text('+91 $phone • $_foundBranch', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: _kTextMuted)),
               ],
             ),
           ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-              color: _kPrimary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.check_rounded, color: Colors.white, size: 12),
+            decoration: const BoxDecoration(color: _kPrimary, shape: BoxShape.circle),
+            child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
           ),
         ],
       ),
@@ -632,59 +604,48 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
     required VoidCallback onToggle,
     required VoidCallback onSubmit,
   }) {
-    return Container(
-      height: 54,
-      decoration: BoxDecoration(
-        color: _kSurface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: focusNode.hasFocus ? _kPrimary : _kBorder,
-          width: focusNode.hasFocus ? 1.5 : 1.0,
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      obscureText: obscure,
+      style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: _kTextDark),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF94A3B8)),
+        prefixIcon: const Icon(Icons.lock_rounded, color: _kPrimary, size: 20),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded, color: const Color(0xFF94A3B8), size: 20),
+          onPressed: onToggle,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        filled: true,
+        fillColor: _kSurface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: _kBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: _kBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: _kPrimary, width: 1.8)),
       ),
-      child: Center(
-        child: TextField(
-          controller: controller,
-          focusNode: focusNode,
-          obscureText: obscure,
-          style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: _kTextDark),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF94A3B8)),
-            prefixIcon: const Icon(Icons.lock_outline_rounded, color: _kPrimary, size: 20),
-            suffixIcon: IconButton(
-              icon: Icon(
-                obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                color: const Color(0xFF94A3B8),
-                size: 20,
-              ),
-              onPressed: onToggle,
-            ),
-            border: InputBorder.none,
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-          ),
-          onSubmitted: (_) => onSubmit(),
-          onChanged: (_) {
-            if (_errorMsg != null) setState(() => _errorMsg = null);
-          },
-        ),
-      ),
+      onSubmitted: (_) => onSubmit(),
+      onChanged: (_) { if (_errorMsg != null) setState(() => _errorMsg = null); },
     );
   }
 
   Widget _buildBranchChip(String branch) {
+    final active = _foundBranch == branch && _flowState != _FlowState.enterPhone;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-      child: Text('🏥 $branch', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF475569))),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: active ? _kPrimary.withValues(alpha: 0.1) : const Color(0xFFFAF8F5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: active ? _kPrimary : _kBorder),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.local_hospital_rounded, size: 12, color: active ? _kPrimary : _kTextMuted),
+          const SizedBox(width: 6),
+          Text(branch, style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: active ? _kPrimary : _kTextMuted)),
+        ],
+      ),
     );
   }
 }

@@ -304,12 +304,13 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFDED8CB)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1F6B4A).withOpacity(0.04), 
-                blurRadius: 24, 
-                offset: const Offset(0, 10),
+                color: Colors.black.withValues(alpha: 0.03), 
+                blurRadius: 16, 
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -323,8 +324,9 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isPaid ? const Color(0xFFE6F4F1) : const Color(0xFFFFEDD5),
+                      color: isPaid ? const Color(0xFF1F6B4A).withValues(alpha: 0.08) : const Color(0xFFEBE6DC),
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: isPaid ? const Color(0xFF1F6B4A).withValues(alpha: 0.2) : const Color(0xFFDED8CB)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -333,7 +335,7 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: isPaid ? const Color(0xFF10B981) : const Color(0xFFEA580C),
+                            color: isPaid ? const Color(0xFF1F6B4A) : const Color(0xFF5A6E64),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -344,7 +346,7 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
-                            color: isPaid ? const Color(0xFF065F46) : const Color(0xFF9A3412),
+                            color: isPaid ? const Color(0xFF1F6B4A) : const Color(0xFF5A6E64),
                           ),
                         ),
                       ],

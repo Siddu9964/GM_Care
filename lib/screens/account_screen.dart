@@ -15,11 +15,10 @@ import 'appointments_screen.dart';
 
 // ─── Project Color Theme ──────────────────────────────────────────────────────
 const _kGreen        = Color(0xFF1F6B4A);
-const _kGreenLight   = Color(0xFF2E8B5E);
-const _kGreenDark    = Color(0xFF053F2C);
-const _kGreenAccent  = Color(0xFF34D399);
-const _kDark         = Color(0xFF0A1628);
-const _kBlue         = Color(0xFF2563EB);
+const _kGreenLight   = Color(0xFF26875B);
+const _kGreenDark    = Color(0xFF143B2A);
+const _kGreenAccent  = Color(0xFF1F6B4A);
+const _kDark         = Color(0xFF143B2A);
 const _kBg           = Color(0xFFF3EFE6);
 
 class AccountScreen extends StatefulWidget {
@@ -91,7 +90,8 @@ class _AccountScreenState extends State<AccountScreen>
       setState(() {
         _bioEnabled = prefs.getBool('bio_enabled') ?? false;
         _localAvatarPath = prefs.getString('avatar_path');
-        _notifEnabled = prefs.getBool('notifications_push') ?? false;
+        _notifEnabled = true;
+        prefs.setBool('notifications_push', true);
         _apptReminders = prefs.getBool('notifications_appointment') ?? true;
         _billingAlerts = prefs.getBool('notifications_billing') ?? true;
       });
@@ -306,7 +306,7 @@ class _AccountScreenState extends State<AccountScreen>
             icon: Icons.photo_library_rounded,
             label: 'Choose from Gallery',
             sub: 'Pick an existing photo',
-            color: _kBlue,
+            color: _kGreen,
             onTap: () { Navigator.pop(ctx); _pickAvatar(source: ImageSource.gallery); },
           ),
           if (_localAvatarPath != null) ...[
@@ -608,12 +608,12 @@ class _AccountScreenState extends State<AccountScreen>
     showModalBottomSheet(
       context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, ss) => _sheet(ctx, 'Change Password', Icons.lock_rounded, _kBlue, [
+        builder: (ctx, ss) => _sheet(ctx, 'Change Password', Icons.lock_rounded, _kGreen, [
           _pwdField('Current Password', curCtrl, obs, () => ss(() => obs = !obs)),
           _pwdField('New Password', newCtrl, obs, () => ss(() => obs = !obs)),
           _pwdField('Confirm Password', cfmCtrl, obs, () => ss(() => obs = !obs)),
           const SizedBox(height: 8),
-          _sheetButton(saving, 'Update Password', Icons.lock_reset_rounded, _kBlue, () async {
+          _sheetButton(saving, 'Update Password', Icons.lock_reset_rounded, _kGreen, () async {
             if (newCtrl.text != cfmCtrl.text) { _toast('Passwords do not match', ok: false); return; }
             if (newCtrl.text.length < 6) { _toast('Minimum 6 characters', ok: false); return; }
             ss(() => saving = true);
@@ -640,12 +640,12 @@ class _AccountScreenState extends State<AccountScreen>
 
     showModalBottomSheet(
       context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
-      builder: (ctx) => _sheet(ctx, 'Emergency Contact', Icons.emergency_rounded, const Color(0xFFEA580C), [
+      builder: (ctx) => _sheet(ctx, 'Emergency Contact', Icons.emergency_rounded, _kGreen, [
         _sheetField('Contact Name', nameCtrl, Icons.person_rounded, TextInputType.name),
         _sheetField('Phone Number', phoneCtrl, Icons.phone_rounded, TextInputType.phone),
         _sheetField('Relationship', relCtrl, Icons.family_restroom_rounded, TextInputType.text),
         const SizedBox(height: 8),
-        _sheetButton(false, 'Save Contact', Icons.save_rounded, const Color(0xFFEA580C), () {
+        _sheetButton(false, 'Save Contact', Icons.save_rounded, _kGreen, () {
           Navigator.pop(ctx);
           _toast('Emergency contact saved!');
         }),
@@ -657,9 +657,9 @@ class _AccountScreenState extends State<AccountScreen>
     'Help & Support', Icons.support_agent_rounded, _kGreen,
     [
       _helpRow(Icons.phone_rounded, 'Helpline', '+91-80-1234-5678', _kGreen),
-      _helpRow(Icons.email_rounded, 'Email Us', 'support@gmcare.in', _kBlue),
-      _helpRow(Icons.location_on_rounded, 'Visit Us', 'GM Hospital, Bangalore', const Color(0xFF7C3AED)),
-      _helpRow(Icons.access_time_rounded, 'Timings', 'Mon–Sat: 8 AM – 8 PM', const Color(0xFFF59E0B)),
+      _helpRow(Icons.email_rounded, 'Email Us', 'support@gmcare.in', _kGreen),
+      _helpRow(Icons.location_on_rounded, 'Visit Us', 'GM Hospital, Bangalore', _kGreen),
+      _helpRow(Icons.access_time_rounded, 'Timings', 'Mon–Sat: 8 AM – 8 PM', _kGreen),
     ],
     ctx,
   ));
@@ -847,12 +847,12 @@ class _AccountScreenState extends State<AccountScreen>
         TextFormField(
           controller: ctrl, obscureText: obs,
           decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.lock_rounded, size: 20, color: _kBlue),
+            prefixIcon: const Icon(Icons.lock_rounded, size: 20, color: _kGreen),
             suffixIcon: IconButton(icon: Icon(obs ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18, color: Colors.grey), onPressed: toggle),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey[200]!)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: _kBlue, width: 2)),
-            filled: true, fillColor: const Color(0xFFF9FAFB),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFDED8CB))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFDED8CB))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: _kGreen, width: 2)),
+            filled: true, fillColor: const Color(0xFFFAF8F5),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
@@ -1336,14 +1336,14 @@ class _AccountScreenState extends State<AccountScreen>
   Widget _buildStatsRow() {
     final stats = [
       {'label': 'Blood',  'value': _bloodGroup,
-       'icon': Icons.water_drop_rounded,      'c': const Color(0xFFDC2626), 'bg': const Color(0xFFFEF2F2)},
+       'icon': Icons.water_drop_rounded,      'c': _kGreen, 'bg': _kGreen.withValues(alpha: 0.08)},
       {'label': 'Age',    'value': _age != 'N/A' ? '${_age}y' : '--',
-       'icon': Icons.cake_rounded,             'c': const Color(0xFF7C3AED), 'bg': const Color(0xFFF5F3FF)},
+       'icon': Icons.cake_rounded,             'c': _kGreen, 'bg': _kGreen.withValues(alpha: 0.08)},
       {'label': 'Gender', 'value': _gender.isNotEmpty
           ? _gender[0].toUpperCase() + (_gender.length > 1 ? _gender.substring(1) : '') : '--',
-       'icon': Icons.wc_rounded,              'c': _kBlue,                  'bg': const Color(0xFFEFF6FF)},
+       'icon': Icons.wc_rounded,              'c': _kGreen, 'bg': _kGreen.withValues(alpha: 0.08)},
       {'label': 'Branch', 'value': widget.location.split(' ').first,
-       'icon': Icons.local_hospital_rounded,  'c': _kGreen,                 'bg': const Color(0xFFF0FDF4)},
+       'icon': Icons.local_hospital_rounded,  'c': _kGreen, 'bg': _kGreen.withValues(alpha: 0.08)},
     ];
 
     return SingleChildScrollView(
@@ -1490,38 +1490,32 @@ class _AccountScreenState extends State<AccountScreen>
   Widget _buildPersonalCard() {
     return _premiumCard([
       _infoRow(Icons.person_rounded,       'Full Name',     _fullName,   _kGreen),
-      _infoRow(Icons.badge_rounded,        'Patient ID',    _patientId,  const Color(0xFF7C3AED), copyable: true),
-      _infoRow(Icons.phone_rounded,        'Phone',         _phone,      const Color(0xFF059669)),
-      _infoRow(Icons.email_rounded,        'Email',         _email,      _kBlue),
-      _infoRow(Icons.cake_rounded,         'Date of Birth', _birthDate,  const Color(0xFFDC2626)),
-      _infoRow(Icons.credit_card_rounded,  'Aadhaar',       _aadhar,     const Color(0xFFF59E0B)),
-      _infoRow(Icons.work_outline_rounded, 'Occupation',    _occupation, const Color(0xFF7C3AED)),
-      _infoRow(Icons.location_on_rounded,  'Address',       _address,    const Color(0xFF0891B2), isLast: true),
+      _infoRow(Icons.badge_rounded,        'Patient ID',    _patientId,  _kGreen, copyable: true),
+      _infoRow(Icons.phone_rounded,        'Phone',         _phone,      _kGreen),
+      _infoRow(Icons.email_rounded,        'Email',         _email,      _kGreen),
+      _infoRow(Icons.cake_rounded,         'Date of Birth', _birthDate,  _kGreen),
+      _infoRow(Icons.credit_card_rounded,  'Aadhaar',       _aadhar,     _kGreen),
+      _infoRow(Icons.work_outline_rounded, 'Occupation',    _occupation, _kGreen),
+      _infoRow(Icons.location_on_rounded,  'Address',       _address,    _kGreen, isLast: true),
     ]);
   }
 
   // ─── NOTIFICATIONS ────────────────────────────────────────────────────────
   Widget _buildNotificationsCard() {
-    return _premiumCard([
-      _toggleRow(Icons.notifications_active_rounded, 'Push Notifications',   'Real-time health alerts',        _kGreen,                 _notifEnabled,  (v) async { 
-        setState(() => _notifEnabled  = v); 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('notifications_push', v);
-        _toast(v ? 'Notifications enabled'  : 'Notifications disabled'); 
-        if (v) {
-          NotificationService().showNotification(id: 0, title: 'Push Notifications Enabled', body: 'You will now receive GM Care alerts on this device!');
-        }
-      }),
-      _toggleRow(Icons.alarm_rounded,                'Appointment Reminders', 'Remind before appointments',    const Color(0xFF059669), _apptReminders, (v) async { 
-        setState(() => _apptReminders = v); 
+    return
+      _premiumCard([
+      // _compulsoryRow(Icons.notifications_active_rounded, 'Push Notifications', 'Mandatory for real-time health alerts', _kGreen),
+      _toggleRow(Icons.alarm_rounded,                'Appointment Reminders', 'Remind before appointments',    _kGreen, _apptReminders, (v) async {
+        setState(() => _apptReminders = v);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('notifications_appointment', v);
-        _toast(v ? 'Reminders enabled'      : 'Reminders disabled'); 
+        _toast(v ? 'Reminders enabled'      : 'Reminders disabled');
         if (v) {
           NotificationService().showNotification(id: 1, title: 'Appointment Reminders', body: 'We will now notify you 15 minutes before your appointments.');
         }
-      }),
-      _toggleRow(Icons.receipt_long_rounded,         'Billing Alerts',        'New bills & payment updates',   const Color(0xFFF59E0B), _billingAlerts, (v) async { 
+      }
+      ),
+      _toggleRow(Icons.receipt_long_rounded,         'Billing Alerts',        'New bills & payment updates',   _kGreen, _billingAlerts, (v) async { 
         setState(() => _billingAlerts = v); 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('notifications_billing', v);
@@ -1530,7 +1524,60 @@ class _AccountScreenState extends State<AccountScreen>
           NotificationService().showBillingAlert(title: 'Billing Alerts On', body: 'You will be notified of new invoices and payment updates.');
         }
       }),
-      _toggleRow(Icons.health_and_safety_rounded,    'Health Tips',           'Daily wellness & fitness tips', const Color(0xFF7C3AED), _healthTips,    (v) { setState(() => _healthTips    = v); _toast(v ? 'Health tips enabled'    : 'Health tips disabled'); }, isLast: true),
+      _toggleRow(Icons.health_and_safety_rounded,    'Health Tips',           'Daily wellness & fitness tips', _kGreen, _healthTips,    (v) { setState(() => _healthTips    = v); _toast(v ? 'Health tips enabled'    : 'Health tips disabled'); }, isLast: true),
+    ]);
+  }
+
+  Widget _compulsoryRow(IconData icon, String title, String sub, Color color, {bool isLast = false}) {
+    return Column(children: [
+      InkWell(
+        onTap: () => _toast('Push notifications are compulsory for clinical and emergency alerts.'),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 12, 16, isLast ? 12 : 0),
+          child: Row(children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: color.withValues(alpha: 0.18), width: 1),
+              ),
+              child: Icon(icon, size: 17, color: color),
+            ),
+            const SizedBox(width: 14),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _kDark)),
+              const SizedBox(height: 1),
+              Text(sub, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+            ])),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: color.withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.lock_outline_rounded, size: 12, color: color),
+                  const SizedBox(width: 4),
+                  Text(
+                    'COMPULSORY',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ]),
+        ),
+      ),
+      if (!isLast) Divider(height: 1, indent: 58, endIndent: 16, color: Colors.grey[100]),
     ]);
   }
 
@@ -1566,9 +1613,9 @@ class _AccountScreenState extends State<AccountScreen>
 
   Widget _buildSecurityCard() {
     return _premiumCard([
-      _tapRow(Icons.lock_rounded,           'Change Password',  'Update your login credentials', _kBlue,                  _showChangePwd),
-      _toggleRow(Icons.fingerprint_rounded, 'Biometric Login',  'Fingerprint or Face ID',        const Color(0xFF7C3AED), _bioEnabled, (v) => _toggleBiometric()),
-      _tapRow(Icons.emergency_rounded,      'Emergency Contact','Designate an emergency contact',const Color(0xFFEA580C), _showEmergency),
+      _tapRow(Icons.lock_rounded,           'Change Password',  'Update your login credentials', _kGreen,                 _showChangePwd),
+      _toggleRow(Icons.fingerprint_rounded, 'Biometric Login',  'Fingerprint or Face ID',        _kGreen,                 _bioEnabled, (v) => _toggleBiometric()),
+      _tapRow(Icons.emergency_rounded,      'Emergency Contact','Designate an emergency contact',_kGreen,                 _showEmergency),
       _tapRow(Icons.devices_rounded,        'Active Sessions',  'Manage logged-in devices',      _kGreen,                 () => _toast('Session management — coming soon!'), isLast: true),
     ]);
   }
@@ -1577,14 +1624,14 @@ class _AccountScreenState extends State<AccountScreen>
   Widget _buildSupportCard() {
     return _premiumCard([
       _tapRow(Icons.support_agent_rounded, 'Help & Support',    'Chat, call or email us',       _kGreen,                 _showHelp),
-      _tapRow(Icons.privacy_tip_outlined,  'Privacy Policy',    'How we use your data',          const Color(0xFF7C3AED),
+      _tapRow(Icons.privacy_tip_outlined,  'Privacy Policy',    'How we use your data',          _kGreen,
         () => _showPolicy('Privacy Policy',
           'GM Care collects personal and health information to provide you with quality healthcare services. Your data is never sold to third parties. We comply with HIPAA and applicable Indian healthcare data regulations.\n\nAll medical records are encrypted and stored securely. You have the right to access, correct, or delete your information at any time by contacting support@gmcare.in.\n\nWe may use anonymized data for research to improve our services. Location data is only used to connect you with nearby hospitals and doctors.')),
-      _tapRow(Icons.description_outlined,  'Terms of Service',  'Our terms & conditions',       const Color(0xFF059669),
+      _tapRow(Icons.description_outlined,  'Terms of Service',  'Our terms & conditions',       _kGreen,
         () => _showPolicy('Terms of Service',
           'By using GM Care, you agree to our terms and conditions. This app is designed to facilitate appointment booking and health record access — it does not provide direct medical advice.\n\nAll appointments booked through the app are subject to doctor availability. GM Care is not responsible for cancellations due to medical emergencies or doctor unavailability.\n\nPatients must provide accurate information. False or misleading information may result in account suspension.')),
-      _tapRow(Icons.star_rate_rounded,     'Rate GM Care',      'Share your experience',        const Color(0xFFF59E0B), _showRate),
-      _tapRow(Icons.share_rounded,         'Share with Friends','Invite friends to GM Care',    const Color(0xFF0891B2), _showShare, isLast: true),
+      _tapRow(Icons.star_rate_rounded,     'Rate GM Care',      'Share your experience',        _kGreen,                 _showRate),
+      _tapRow(Icons.share_rounded,         'Share with Friends','Invite friends to GM Care',    _kGreen,                 _showShare, isLast: true),
     ]);
   }
 
