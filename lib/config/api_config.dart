@@ -111,7 +111,7 @@ class ApiConfig {
 
   // ── Base URLs ─────────────────────────────────────────────────────────────
   // static const String baseUrl      = 'http://172.21.2.146/GM_HMS/api';
-  static const String baseUrl      = 'https://erp.gmhospitals.co.in//GM_HMS/api';
+   static const String baseUrl      = 'https://erp.gmhospitals.co.in//GM_HMS/api';
   static const String imageBaseUrl = '$scheme://$serverIp';
 
   // ── Auth endpoints ────────────────────────────────────────────────────────

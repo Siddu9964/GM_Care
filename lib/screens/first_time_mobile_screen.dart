@@ -432,7 +432,15 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
                                         ),
                                         const SizedBox(width: 8),
                                         TextButton(
-                                          onPressed: () => Navigator.of(context).push(_smoothRoute(SetPasswordScreen(phone: _phoneCtrl.text.trim().replaceAll(RegExp(r'\D'), ''), branch: _foundBranch, patientData: _foundPatient ?? {}))),
+                                          onPressed: () {
+                                            setState(() {
+                                              _flowState = _FlowState.setPassword;
+                                              _errorMsg = null;
+                                            });
+                                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                                              FocusScope.of(context).requestFocus(_newPassFocus);
+                                            });
+                                          },
                                           style: TextButton.styleFrom(
                                             foregroundColor: _kPrimary,
                                             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
