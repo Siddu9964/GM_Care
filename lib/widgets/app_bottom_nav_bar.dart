@@ -46,55 +46,56 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
   }
 
   static const _items = [
-    _NavItem(Icons.home_rounded,         Icons.home_outlined,         'Home'),
-    _NavItem(Icons.calendar_month_rounded, Icons.calendar_month_outlined, 'Appointments'),
-    _NavItem(Icons.chat_bubble_rounded,  Icons.chat_bubble_outline_rounded, 'Chat'),
-    // _NavItem(Icons.person_rounded,       Icons.person_outline_rounded, 'Profile'),
+    _NavItem(Icons.local_hospital_rounded, Icons.local_hospital_outlined, 'Hospital'),
+    _NavItem(Icons.calendar_today_rounded, Icons.calendar_today_outlined, 'OPD Visits'),
+    _NavItem(Icons.support_agent_rounded, Icons.support_agent_outlined, '24x7 Desk'),
+    _NavItem(Icons.badge_rounded, Icons.badge_outlined, 'Medical ID'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final bottomPad  = MediaQuery.of(context).padding.bottom;
-    final screenW    = MediaQuery.of(context).size.width;
-    final isTablet   = screenW > 600;
-    final navWidth   = isTablet ? 500.0 : screenW - 32.0;
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    final screenW = MediaQuery.of(context).size.width;
+    final isTablet = screenW > 600;
+    final navWidth = isTablet ? 520.0 : screenW - 28.0;
 
     return Align(
       alignment: Alignment.bottomCenter,
       child: Padding(
-        padding: EdgeInsets.only(bottom: bottomPad + 12, left: 16, right: 16),
+        padding: EdgeInsets.only(bottom: bottomPad > 0 ? bottomPad + 6 : 14, left: 14, right: 14),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(26),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               width: navWidth,
-              height: 68,
+              height: 66,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.92),
-                borderRadius: BorderRadius.circular(32),
+                color: Colors.white.withOpacity(0.94),
+                borderRadius: BorderRadius.circular(26),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.6),
-                  width: 1.5,
+                  color: const Color(0xFF1F6B4A).withOpacity(0.12),
+                  width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: _kGreen.withOpacity(0.18),
-                    blurRadius: 30,
-                    spreadRadius: 2,
+                    color: const Color(0xFF143B2A).withOpacity(0.10),
+                    blurRadius: 28,
+                    spreadRadius: 0,
                     offset: const Offset(0, 8),
                   ),
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF1F6B4A).withOpacity(0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(_items.length, (i) {
-                  final item     = _items[i];
+                  final item = _items[i];
                   final selected = widget.currentIndex == i;
                   return _NavButton(
                     item: item,
@@ -173,8 +174,8 @@ class _NavButtonState extends State<_NavButton>
           child: child,
         ),
         child: SizedBox(
-          width: 72,
-          height: 68,
+          width: 66,
+          height: 64,
           child: widget.selected ? _SelectedItem(widget.item, widget.ripple)
                                  : _UnselectedItem(widget.item),
         ),

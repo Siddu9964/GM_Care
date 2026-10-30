@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../services/notification_service.dart';
@@ -28,23 +28,30 @@ class AppointmentsSection extends StatefulWidget {
   State<AppointmentsSection> createState() => _AppointmentsSectionState();
 }
 
-class _AppointmentsSectionState extends State<AppointmentsSection> {
+class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   List<dynamic> _appointments = [];
   
   late PageController _pageController;
-  int _currentPage = 0; // Changed to 0 so it starts at the first card
+  int _currentPage = 0;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    // Reduced viewportFraction to 0.75 to reduce width as requested
-    _pageController = PageController(viewportFraction: 0.75, initialPage: _currentPage);
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulseAnimation = CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
+    _pageController = PageController(viewportFraction: 0.88, initialPage: _currentPage);
     _fetchAppointments();
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -69,11 +76,10 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
             return status != 'Cancelled' && status != 'Doctor On Leave' && status != 'Leave';
           }).toList();
           
-          // Sort by date (descending, so most recent is first)
           validAppointments.sort((a, b) {
             final dateA = DateTime.tryParse('${a['appointment_date']} ${a['appointment_time']}') ?? DateTime(2000);
             final dateB = DateTime.tryParse('${b['appointment_date']} ${b['appointment_time']}') ?? DateTime(2000);
-            return dateB.compareTo(dateA); // Descending
+            return dateB.compareTo(dateA);
           });
           
           if (mounted) {
@@ -121,9 +127,17 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A))),
+      return Container(
+        height: 140,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFDED8CB)),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(color: Color(0xFF1F6B4A), strokeWidth: 2.5),
+        ),
       );
     }
 
@@ -137,16 +151,41 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "My Appointments",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "Active OPD Visits",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF143B2A),
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      "Live Hospital Consultation Queue",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF5A6E64),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               GestureDetector(
                 onTap: () {
+                  HapticFeedback.lightImpact();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -161,30 +200,41 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
                     ),
                   ).then((_) => _fetchAppointments());
                 },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Text("See All", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A))),
-                    SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1F6B4A)),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1F6B4A).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        "Schedule",
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF1F6B4A)),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         SizedBox(
-          height: isTablet ? 260 : 220,
+          height: isTablet ? 220 : 190,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _appointments.length, // Removed infinite loop
-            onPageChanged: (idx) {
-               setState(() => _currentPage = idx);
-            },
+            itemCount: _appointments.length,
+            onPageChanged: (idx) => setState(() => _currentPage = idx),
+            physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) {
               final apt = _appointments[index];
-              return _buildTicketCard(apt, isTablet, index == _currentPage);
+              final isActive = index == _currentPage;
+              return _buildOpdPassCard(apt, isTablet, isActive);
             },
           ),
         ),
@@ -194,21 +244,51 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
 
   Widget _buildEmptyState() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(30),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 10))],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFDED8CB)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1F6B4A).withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          const Icon(Icons.event_busy_rounded, size: 60, color: Color(0xFF1F6B4A)),
-          const SizedBox(height: 16),
-          const Text("No Appointments", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A))),
-          const SizedBox(height: 8),
-          const Text("You're all caught up! Book a new visit when needed.", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 20),
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1F6B4A).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.15)),
+            ),
+            child: const Icon(Icons.calendar_month_rounded, size: 26, color: Color(0xFF1F6B4A)),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text(
+                  "No Active OPD Bookings",
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF143B2A)),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  "Book an OPD consultation with super-specialists",
+                  style: TextStyle(fontSize: 11, color: Color(0xFF5A6E64), height: 1.3),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -229,261 +309,305 @@ class _AppointmentsSectionState extends State<AppointmentsSection> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F6B4A),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               elevation: 0,
             ),
-            child: const Text("Book Appointment", style: TextStyle(fontWeight: FontWeight.bold)),
-          )
+            child: const Text("Book Now", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTicketCard(dynamic apt, bool isTablet, bool isActive) {
-    final status = apt['appointment_status']?.toString() ?? 'Upcoming';
+  Widget _buildOpdPassCard(dynamic apt, bool isTablet, bool isActive) {
+    final status = apt['appointment_status']?.toString() ?? 'Scheduled';
     final dateStr = apt['appointment_date'] ?? 'Unknown Date';
     final timeStr = _formatTime(apt['appointment_time']?.toString());
-    final docName = apt['doctor_name'] ?? 'Unknown Doctor';
-    final spec = apt['specialization'] ?? 'General';
-    final type = apt['appointment_type'] ?? 'Hospital Visit';
-    
+    final docName = apt['doctor_name'] ?? 'Consultant';
+    final spec = apt['specialization'] ?? 'Super Specialty';
+    final aptId = apt['appointment_id']?.toString() ?? '101';
+    final tokenNo = (int.tryParse(aptId) ?? 101) % 40 + 1;
+
     DateTime? dt;
     try { dt = DateTime.parse(dateStr); } catch (_) {}
     
-    String day = dt != null ? dt.day.toString().padLeft(2, '0') : '--';
-    String month = dt != null ? _getMonth(dt.month) : '---';
-    String weekDay = dt != null ? _getWeekDay(dt.weekday) : '---';
-    
-    // Check if expired
     bool isExpired = false;
     if (dt != null) {
-       final fullDate = DateTime.tryParse('${apt['appointment_date']} ${apt['appointment_time']}') ?? dt;
-       if (fullDate.isBefore(DateTime.now())) {
-           isExpired = true;
-       }
+      final fullDate = DateTime.tryParse('${apt['appointment_date']} ${apt['appointment_time']}') ?? dt;
+      if (fullDate.isBefore(DateTime.now())) {
+        isExpired = true;
+      }
     }
 
-    Widget cardContent = AnimatedScale(
-      scale: isActive ? 1.0 : 0.9,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOutQuart,
-      child: AnimatedOpacity(
-        opacity: isActive ? 1.0 : 0.6,
-        duration: const Duration(milliseconds: 500),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 8))],
+    final String dayFormatted = dt != null ? "${_getMonth(dt.month)} ${dt.day}, ${dt.year}" : dateStr;
+
+    return AnimatedScale(
+      scale: isActive ? 1.0 : 0.96,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: isExpired ? const Color(0xFFDED8CB) : const Color(0xFF1F6B4A).withOpacity(0.25),
+            width: 1.2,
           ),
-          child: Stack(
-            children: [
-              Row(
-                children: [
-                  // Left Date Strip
-                  Container(
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: isExpired ? Colors.grey[600] : const Color(0xFF1F6B4A),
-                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), bottomLeft: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1F6B4A).withOpacity(0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Top Badge Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1F6B4A),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!isExpired) ...[
+                              AnimatedBuilder(
+                                animation: _pulseAnimation,
+                                builder: (context, child) => Container(
+                                  width: 5.5,
+                                  height: 5.5,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6EE7B7),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF6EE7B7).withValues(alpha: 0.6 * _pulseAnimation.value),
+                                        blurRadius: 4 * _pulseAnimation.value,
+                                        spreadRadius: 1.5 * _pulseAnimation.value,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4.5),
+                            ],
+                            Text(
+                              "TOKEN #$tokenNo",
+                              style: const TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: isExpired ? Colors.grey.shade100 : const Color(0xFF26875B).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isExpired ? Colors.grey.shade300 : const Color(0xFF26875B).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Text(
+                            isExpired ? "COMPLETED" : status.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: isExpired ? Colors.grey.shade600 : const Color(0xFF1F6B4A),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.meeting_room_outlined, size: 13, color: Color(0xFF5A6E64)),
+                    SizedBox(width: 3),
+                    Text(
+                      "Room 204",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF5A6E64),
+                      ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ],
+                ),
+              ],
+            ),
+
+            // Doctor details
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1F6B4A).withOpacity(0.08),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2)),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.person_rounded, color: Color(0xFF1F6B4A), size: 24),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        docName.startsWith("Dr") ? docName : "Dr. $docName",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF143B2A),
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        spec.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF26875B),
+                          letterSpacing: 0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Bottom strip
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBF8F4),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDED8CB).withValues(alpha: 0.7)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
                       children: [
-                        Text(month.toUpperCase(), style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)),
-                        const SizedBox(height: 2),
-                        Text(day, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 26, height: 1.0)),
-                        const SizedBox(height: 2),
-                        Text(weekDay.toUpperCase(), style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 11)),
+                        const Icon(Icons.event_available_rounded, size: 13, color: Color(0xFF1F6B4A)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            dayFormatted,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF143B2A),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF5A6E64)),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            timeStr,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF1F6B4A),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  // Perforation line
-                  CustomPaint(
-                    size: Size(1, isTablet ? 260 : 220),
-                    painter: DashedLinePainter(),
-                  ),
-                  // Center Content
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: isExpired ? Colors.grey[200] : const Color(0xFFF3EFE6),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  isExpired ? 'EXPIRED' : status.toUpperCase(),
-                                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: isExpired ? Colors.grey[600] : const Color(0xFF1F6B4A)),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: isExpired ? Colors.grey[200] : const Color(0xFFF3EFE6),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(Icons.calendar_month_rounded, size: 14, color: isExpired ? Colors.grey[600] : const Color(0xFF1F6B4A)),
-                              )
-                            ],
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AppointmentsScreen(
+                            userName: widget.userName,
+                            location: widget.location,
+                            cookie: widget.cookie,
+                            age: widget.age,
+                            sex: widget.sex,
+                            patientId: widget.patientId,
                           ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 20,
-                                backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100'),
-                                backgroundColor: isExpired ? Colors.grey[300] : const Color(0xFFF3EFE6),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      docName.startsWith("Dr") ? docName : "Dr. $docName", 
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: isExpired ? Colors.grey[700] : const Color(0xFF1F6B4A)), 
-                                      maxLines: 1, 
-                                      overflow: TextOverflow.ellipsis
-                                    ),
-                                    Text("$spec • $type", style: TextStyle(fontSize: 11, color: isExpired ? Colors.grey[500] : Colors.grey, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                  ],
-                                ),
-                              ),
-                            ],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1F6B4A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            "Slip",
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
                           ),
-                          const Spacer(),
-                          Divider(color: Colors.grey.withOpacity(0.2)),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(timeStr, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: isExpired ? Colors.grey[700] : const Color(0xFF1F6B4A)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                    const Text("Time", style: TextStyle(fontSize: 10, color: Colors.grey)),
-                                  ],
-                                ),
-                              ),
-                              if (!isExpired)
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => AppointmentsScreen(
-                                          userName: widget.userName,
-                                          location: widget.location,
-                                          cookie: widget.cookie,
-                                          age: widget.age,
-                                          sex: widget.sex,
-                                          patientId: widget.patientId,
-                                        ),
-                                      ),
-                                    ).then((_) => _fetchAppointments());
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1F6B4A),
-                                    foregroundColor: Colors.white,
-                                    elevation: 4,
-                                    shadowColor: const Color(0xFF1F6B4A).withValues(alpha: 0.5),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Text("Check-In", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-                                      SizedBox(width: 4),
-                                      Icon(Icons.arrow_forward_rounded, size: 14),
-                                    ],
-                                  ),
-                                )
-                            ],
-                          )
+                          SizedBox(width: 2),
+                          Icon(Icons.chevron_right_rounded, size: 12, color: Colors.white),
                         ],
                       ),
                     ),
                   ),
                 ],
               ),
-              if (isExpired)
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
-                      child: Container(
-                        color: Colors.white.withOpacity(0.3),
-                        alignment: Alignment.center,
-                        child: Transform.rotate(
-                          angle: -0.2,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.red.withOpacity(0.7), width: 3),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              "COMPLETED",
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.red.withOpacity(0.7),
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
-
-    return cardContent;
   }
 
   String _getMonth(int m) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months[m - 1];
   }
-
-  String _getWeekDay(int d) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[d - 1];
-  }
-}
-
-class DashedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    double dashHeight = 5, dashSpace = 5, startY = 0;
-    final paint = Paint()
-      ..color = Colors.grey.withOpacity(0.3)
-      ..strokeWidth = 2;
-    while (startY < size.height) {
-      canvas.drawLine(Offset(0, startY), Offset(0, startY + dashHeight), paint);
-      startY += dashHeight + dashSpace;
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -32,23 +32,90 @@ class RadialQuickServicesHub extends StatefulWidget {
   State<RadialQuickServicesHub> createState() => _RadialQuickServicesHubState();
 }
 
-class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
-  final List<_ServiceData> _services = [
-    _ServiceData("Book", Icons.calendar_today_rounded, 0),
-    _ServiceData("Pharmacy", Icons.local_pharmacy_rounded, 1),
-    _ServiceData("Reports", Icons.description_rounded, 2),
-    _ServiceData("Billing", Icons.receipt_long_rounded, 3),
-    _ServiceData("Doctors", Icons.people_alt_rounded, 4),
-    _ServiceData("Test Data", Icons.science_rounded, 5),
-    _ServiceData("Emergency", Icons.emergency_rounded, 6),
-    _ServiceData("Insights", Icons.auto_awesome_rounded, 7),
+class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulseAnimation = CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  final List<_ClinicalService> _services = [
+    _ClinicalService(
+      id: 'book',
+      title: "Book OPD",
+      subtitle: "Consult Specialist",
+      badge: "LIVE",
+      icon: Icons.calendar_month_rounded,
+    ),
+    _ClinicalService(
+      id: 'doctors',
+      title: "Specialists",
+      subtitle: "Doctor Directory",
+      badge: "FACULTY",
+      icon: Icons.people_alt_rounded,
+    ),
+    _ClinicalService(
+      id: 'pharmacy',
+      title: "24x7 Pharmacy",
+      subtitle: "Bedside & Home",
+      badge: "FAST",
+      icon: Icons.medication_rounded,
+    ),
+    _ClinicalService(
+      id: 'reports',
+      title: "Lab & PACS",
+      subtitle: "E-Signed Reports",
+      badge: "VERIFIED",
+      icon: Icons.biotech_rounded,
+    ),
+    _ClinicalService(
+      id: 'billing',
+      title: "Hospital Bills",
+      subtitle: "Insurance / TPA",
+      badge: "CLAIMS",
+      icon: Icons.receipt_long_rounded,
+    ),
+    _ClinicalService(
+      id: 'emergency',
+      title: "Code Red SOS",
+      subtitle: "Ambulance Hotline",
+      badge: "EMERGENCY",
+      icon: Icons.emergency_rounded,
+      isEmergency: true,
+    ),
+    _ClinicalService(
+      id: 'test',
+      title: "Diagnostics",
+      subtitle: "Test Data Hub",
+      badge: "NABL",
+      icon: Icons.science_rounded,
+    ),
+    _ClinicalService(
+      id: 'insights',
+      title: "Clinical Feed",
+      subtitle: "Health Insights",
+      badge: "DAILY",
+      icon: Icons.insights_rounded,
+    ),
   ];
 
-  Future<void> _handleServiceTap(_ServiceData service) async {
+  Future<void> _handleServiceTap(_ClinicalService service) async {
     Widget? destination;
     
-    // Mapping the new UI titles to the exact existing backend/routing logic
-    if (service.title == "Doctors") {
+    if (service.id == "doctors") {
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -99,165 +166,187 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
         }
         return;
       }
-
-    } else if (service.title == "Reports") {
+    } else if (service.id == "reports") {
       destination = HealthReportsScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, patientId: widget.patientId);
-    } else if (service.title == "Billing") {
+    } else if (service.id == "billing") {
       destination = BillingHistoryScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, patientId: widget.patientId);
-    } else if (service.title == "Pharmacy") {
+    } else if (service.id == "pharmacy") {
       destination = PharmacyScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, patientId: widget.patientId);
-    } else if (service.title == "Book") {
+    } else if (service.id == "book") {
       destination = AppointmentsScreen(userName: widget.userName, location: widget.location, cookie: widget.cookie, age: widget.age, sex: widget.sex, patientId: widget.patientId);
-    } else if (service.title == "Test Data") {
+    } else if (service.id == "test") {
       destination = TestDataScreen(patientId: widget.patientId, location: widget.location, cookie: widget.cookie, userName: widget.userName);
-    } else if (service.title == "Emergency") {
+    } else if (service.id == "emergency") {
       _showEmergencyModal();
       return;
     } else {
-      // For Insights
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${service.title} service is coming soon!")));
+      // Insights
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${service.title} is synced with hospital health feed.")));
       return;
     }
 
     if (!mounted) return;
     final Widget dest = destination;
-    // Custom Fade + Slide Page Transition
     Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (context, animation, secondaryAnimation) => dest,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final slideAnimation = Tween<Offset>(
-              begin: const Offset(0.0, 0.05), // Slight slide up
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
-            
-            final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOut),
-            );
-            
-            return FadeTransition(
-              opacity: fadeAnimation,
-              child: SlideTransition(position: slideAnimation, child: child),
-            );
-          },
-        ),
-      );
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final slideAnimation = Tween<Offset>(
+            begin: const Offset(0.0, 0.05),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic));
+          
+          final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          );
+          
+          return FadeTransition(
+            opacity: fadeAnimation,
+            child: SlideTransition(position: slideAnimation, child: child),
+          );
+        },
+      ),
+    );
   }
 
   void _showEmergencyModal() {
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEF4444).withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.emergency_rounded, color: Color(0xFFEF4444), size: 36),
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              "Emergency Services",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "In case of a medical emergency, please contact the hospital immediate helpline or ambulance service directly.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: Colors.grey[600], height: 1.4),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
+      builder: (ctx) => SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.82,
+          ),
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 4.5,
+                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4)),
+                ),
+                const SizedBox(height: 18),
+                // Glowing Pulse Emergency Icon
+                AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) => Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F6B4A).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text("Hospital Helpline (24x7)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
-                        SizedBox(height: 2),
-                        Text("+91 80 2345 6789", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+                      color: const Color(0xFFDC2626).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.25 * _pulseAnimation.value),
+                          blurRadius: 18 * _pulseAnimation.value,
+                          spreadRadius: 4 * _pulseAnimation.value,
+                        ),
                       ],
                     ),
+                    child: child,
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEF4444).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.airport_shuttle_rounded, color: Color(0xFFEF4444), size: 22),
+                  child: const Icon(Icons.emergency_rounded, color: Color(0xFFDC2626), size: 36),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  "GM Emergency & Trauma Center",
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF143B2A)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Immediate resuscitation, Level-1 Trauma response & Cardiac Cath Lab emergency response team on standby 24x7.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey[700], height: 1.35),
+                ),
+                const SizedBox(height: 18),
+                // Helpline 1
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBF8F4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFDED8CB)),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text("National Ambulance Helpline", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
-                        SizedBox(height: 2),
-                        Text("108 / 112", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFFEF4444))),
-                      ],
-                    ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text("Hospital Emergency Hotline (24x7)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64))),
+                            SizedBox(height: 2),
+                            Text("+91 80 2345 6789", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF143B2A))),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10),
+                // Helpline 2
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFCA5A5).withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.airport_shuttle_rounded, color: Color(0xFFDC2626), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text("Rapid Ambulance Dispatch (National)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF991B1B))),
+                            SizedBox(height: 2),
+                            Text("108 / 112 (Toll Free)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("Dismiss", style: TextStyle(color: Color(0xFF5A6E64), fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text("Dismiss", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -265,79 +354,162 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 4.0, bottom: 20.0),
-            child: Text(
-              "Quick Access",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1F6B4A),
-                letterSpacing: -0.5,
-              ),
-            ),
-          ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final availableWidth = constraints.maxWidth;
-              // Ensure 4 items per row on mobile, more on wider screens
-              final crossAxisCount = availableWidth > 600 ? 6 : 4;
-              final spacing = 16.0;
-              final itemWidth = (availableWidth - (spacing * (crossAxisCount - 1))) / crossAxisCount;
-
-              return Wrap(
-                spacing: spacing, // horizontal gap
-                runSpacing: 24, // vertical gap
-                alignment: WrapAlignment.start,
-                children: _services.map((service) {
-                  return SizedBox(
-                    width: itemWidth,
-                    child: _QuickAccessItem(
-                      service: service,
-                      onTap: () => _handleServiceTap(service),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "Hospital Services",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF143B2A),
+                        letterSpacing: -0.4,
+                      ),
                     ),
-                  );
-                }).toList(),
-              );
-            }
+                    SizedBox(height: 2),
+                    Text(
+                      "High-Tech Super Specialty Care Units",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF5A6E64),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) => Container(
+                        width: 6.5,
+                        height: 6.5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF26875B),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF26875B).withValues(alpha: 0.5 * _pulseAnimation.value),
+                              blurRadius: 6 * _pulseAnimation.value,
+                              spreadRadius: 2 * _pulseAnimation.value,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      "24/7 ACTIVE",
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF1F6B4A),
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final availableWidth = constraints.maxWidth;
+            final crossAxisCount = availableWidth > 600 ? 4 : 4;
+            final spacing = 12.0;
+            final itemWidth = (availableWidth - (spacing * (crossAxisCount - 1))) / crossAxisCount;
+
+            return Wrap(
+              spacing: spacing,
+              runSpacing: 14,
+              alignment: WrapAlignment.start,
+              children: _services.map((service) {
+                return SizedBox(
+                  width: itemWidth,
+                  child: _ClinicalServiceTile(
+                    service: service,
+                    pulseAnimation: _pulseAnimation,
+                    onTap: () => _handleServiceTap(service),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-class _ServiceData {
+class _ClinicalService {
+  final String id;
   final String title;
+  final String subtitle;
+  final String badge;
   final IconData icon;
-  final int index;
-  _ServiceData(this.title, this.icon, this.index);
+  final bool isEmergency;
+
+  _ClinicalService({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.icon,
+    this.isEmergency = false,
+  });
 }
 
-class _QuickAccessItem extends StatefulWidget {
-  final _ServiceData service;
+class _ClinicalServiceTile extends StatefulWidget {
+  final _ClinicalService service;
+  final Animation<double> pulseAnimation;
   final VoidCallback onTap;
 
-  const _QuickAccessItem({required this.service, required this.onTap});
+  const _ClinicalServiceTile({
+    required this.service,
+    required this.pulseAnimation,
+    required this.onTap,
+  });
 
   @override
-  State<_QuickAccessItem> createState() => _QuickAccessItemState();
+  State<_ClinicalServiceTile> createState() => _ClinicalServiceTileState();
 }
 
-class _QuickAccessItemState extends State<_QuickAccessItem> {
+class _ClinicalServiceTileState extends State<_ClinicalServiceTile> {
   bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
+    final isEmerg = widget.service.isEmergency;
+    final primaryColor = isEmerg ? const Color(0xFFDC2626) : const Color(0xFF1F6B4A);
+    final accentBg = isEmerg ? const Color(0xFFFEF2F2) : const Color(0xFFF6F8F6);
+
     return GestureDetector(
       onTapDown: (_) {
         setState(() => _isPressed = true);
-        HapticFeedback.lightImpact();
+        HapticFeedback.selectionClick();
       },
       onTapUp: (_) {
         setState(() => _isPressed = false);
@@ -345,49 +517,92 @@ class _QuickAccessItemState extends State<_QuickAccessItem> {
       },
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedScale(
-        scale: _isPressed ? 0.90 : 1.0,
-        duration: const Duration(milliseconds: 150),
+        scale: _isPressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 140),
         curve: Curves.easeOutCubic,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AspectRatio(
-              aspectRatio: 1.0,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(22), // Smooth rounded corners
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF1F6B4A).withOpacity(0.06), // Very soft green-tinted shadow
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+        child: AnimatedBuilder(
+          animation: widget.pulseAnimation,
+          builder: (context, child) => Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isEmerg 
+                    ? Color.lerp(
+                        const Color(0xFFFCA5A5), 
+                        const Color(0xFFDC2626), 
+                        0.35 * widget.pulseAnimation.value,
+                      )! 
+                    : const Color(0xFFDED8CB).withValues(alpha: 0.8),
+                width: isEmerg ? 1.3 : 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isEmerg 
+                      ? const Color(0xFFDC2626).withValues(alpha: 0.08 + 0.08 * widget.pulseAnimation.value)
+                      : const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                  blurRadius: isEmerg ? (12 + 6 * widget.pulseAnimation.value) : 10,
+                  offset: const Offset(0, 4),
                 ),
-                child: Center(
-                  child: Icon(
-                    widget.service.icon,
-                    color: const Color(0xFF1F6B4A),
-                    size: 26,
+              ],
+            ),
+            child: child,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Clinical Icon container
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: accentBg,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: primaryColor.withValues(alpha: 0.14),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      widget.service.icon,
+                      color: primaryColor,
+                      size: 22,
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  widget.service.title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isEmerg ? const Color(0xFFDC2626) : const Color(0xFF143B2A),
+                    letterSpacing: -0.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.service.subtitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF5A6E64),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              widget.service.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1F6B4A),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+          ),
         ),
       ),
     );

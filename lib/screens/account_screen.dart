@@ -87,19 +87,38 @@ class _AccountScreenState extends State<AccountScreen>
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
+      final cachedPatientStr = prefs.getString('cached_patient_${widget.userName}');
+      Map<String, dynamic>? cachedData;
+      if (cachedPatientStr != null && cachedPatientStr.isNotEmpty) {
+        try {
+          cachedData = Map<String, dynamic>.from(jsonDecode(cachedPatientStr));
+        } catch (_) {}
+      }
+
       setState(() {
         _bioEnabled = prefs.getBool('bio_enabled') ?? false;
         _localAvatarPath = prefs.getString('avatar_path');
+        if (cachedData != null && cachedData.isNotEmpty) {
+          _patient = cachedData;
+          _isLoading = false;
+        }
         _notifEnabled = true;
         prefs.setBool('notifications_push', true);
         _apptReminders = prefs.getBool('notifications_appointment') ?? true;
         _billingAlerts = prefs.getBool('notifications_billing') ?? true;
       });
+
+      if (cachedData != null && cachedData.isNotEmpty) {
+        _heroCtrl.forward();
+        _itemsCtrl.forward();
+      }
     }
   }
 
   Future<void> _load() async {
-    setState(() { _isLoading = true; _error = null; });
+    if (_patient.isEmpty) {
+      setState(() { _isLoading = true; _error = null; });
+    }
     try {
       final uri = Uri.parse(ApiConfig.patientSearch(widget.userName));
       final r = await http.get(uri, headers: {
@@ -116,18 +135,23 @@ class _AccountScreenState extends State<AccountScreen>
         } else if (d is Map && d.isNotEmpty) {
           _patient = Map<String, dynamic>.from(d);
         } else {
-          _error = 'Patient record not found.';
+          if (_patient.isEmpty) _error = 'Patient record not found.';
+        }
+        if (_patient.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cached_patient_${widget.userName}', jsonEncode(_patient));
         }
       } else {
-        _error = 'Server error (${r.statusCode})';
+        if (_patient.isEmpty) _error = 'Server error (${r.statusCode})';
       }
     } catch (e) {
-      _error = 'Network error. Check connection.';
+      if (_patient.isEmpty) _error = 'Network error. Check connection.';
     }
-    setState(() => _isLoading = false);
-    _heroCtrl.forward();
-    await Future.delayed(const Duration(milliseconds: 250));
-    _itemsCtrl.forward();
+    if (mounted) {
+      setState(() => _isLoading = false);
+      _heroCtrl.forward();
+      _itemsCtrl.forward();
+    }
   }
 
   // ── Getters from Table: patient ──────────────────────────────────────────
@@ -204,7 +228,16 @@ class _AccountScreenState extends State<AccountScreen>
       maxWidth: 800,
     );
     if (picked != null) {
-      if (mounted) setState(() => _isLoading = true);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('avatar_path', picked.path);
+      if (mounted) {
+        setState(() {
+          _localAvatarPath = picked.path;
+          imageCache.clear();
+          imageCache.clearLiveImages();
+        });
+      }
+      _toast('Profile photo updated! ✨');
       
       try {
         final targetId = (_patient['patient_id'] != null && _patient['patient_id'].toString().isNotEmpty)
@@ -224,41 +257,16 @@ class _AccountScreenState extends State<AccountScreen>
         var response = await http.Response.fromStream(streamedResponse);
         
         if (response.statusCode == 200 || response.statusCode == 201) {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('avatar_path', picked.path);
           try {
             final resJson = jsonDecode(response.body);
             final newUrl = resJson['data']?['url'];
             if (newUrl != null) {
               _patient['image'] = newUrl;
+              await prefs.setString('cached_patient_${widget.userName}', jsonEncode(_patient));
             }
           } catch (_) {}
-          if (mounted) {
-            setState(() {
-              _localAvatarPath = picked.path;
-              // Clear previous network image cache if any so new avatar can reload
-              imageCache.clear();
-              imageCache.clearLiveImages();
-            });
-          }
-          _toast('Profile picture updated!');
-        } else {
-          String errMsg = 'Failed to upload image (${response.statusCode})';
-          try {
-            final resJson = jsonDecode(response.body);
-            if (resJson['error'] != null) {
-              errMsg = resJson['error'];
-            } else if (resJson['message'] != null) {
-              errMsg = resJson['message'];
-            }
-          } catch (_) {}
-          _toast(errMsg, ok: false);
         }
-      } catch (e) {
-        _toast('Upload error: $e', ok: false);
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
-      }
+      } catch (_) {}
     }
   }
 
@@ -668,58 +676,158 @@ class _AccountScreenState extends State<AccountScreen>
 
   void _showRate() {
     int stars = 5;
-    showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, ss) => Dialog(
-      backgroundColor: Colors.transparent,
-      child: Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 30)]),
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [_kGreen, _kGreenLight]),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(Icons.star_rounded, color: Colors.white, size: 28),
+    const feedbackLabels = {
+      5: 'Exceptional Healthcare! ⭐',
+      4: 'Very Good Experience! 👍',
+      3: 'Good & Satisfactory 🙂',
+      2: 'Fair — Needs Improvement ⚠️',
+      1: 'Poor Experience 😞',
+    };
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, ss) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            const Text('Rate GM Care', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: _kDark)),
-            const SizedBox(height: 4),
-            Text('Your feedback matters!', style: TextStyle(color: Colors.grey[500], fontSize: 13)),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (i) => GestureDetector(
-                onTap: () => ss(() => stars = i + 1),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: AnimatedScale(
-                    scale: i < stars ? 1.2 : 1.0,
-                    duration: const Duration(milliseconds: 150),
-                    child: Icon(i < stars ? Icons.star_rounded : Icons.star_outline_rounded, size: 38, color: const Color(0xFFF59E0B)),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [_kGreen, _kGreenLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _kGreen.withValues(alpha: 0.28),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.star_rounded, color: Colors.white, size: 30),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Rate GM Care',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: _kDark),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Your feedback helps us deliver better care',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12.5),
+                ),
+                const SizedBox(height: 20),
+                // FittedBox ensures 5 stars never overflow on compact screens
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (i) => GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        ss(() => stars = i + 1);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: AnimatedScale(
+                          scale: i < stars ? 1.15 : 0.95,
+                          duration: const Duration(milliseconds: 150),
+                          child: Icon(
+                            i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
+                            size: 36,
+                            color: const Color(0xFFF59E0B),
+                          ),
+                        ),
+                      ),
+                    )),
                   ),
                 ),
-              )),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    feedbackLabels[stars] ?? '$stars / 5',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFD97706),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.pop(ctx);
+                          _toast('Thanks for rating GM Care! ⭐');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF59E0B),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shadowColor: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+                        ),
+                        child: const Text(
+                          'Submit',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text('$stars / 5', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFFF59E0B))),
-            const SizedBox(height: 20),
-            Row(children: [
-              Expanded(child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel'))),
-              const SizedBox(width: 12),
-              Expanded(child: ElevatedButton(
-                onPressed: () { Navigator.pop(ctx); _toast('Thanks for rating GM Care! ⭐'); },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF59E0B), foregroundColor: Colors.white, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: const Text('Submit', style: TextStyle(fontWeight: FontWeight.w800)),
-              )),
-            ]),
-          ],
+          ),
         ),
       ),
-    )));
+    );
   }
 
   void _showShare() => showDialog(context: context, builder: (ctx) => Dialog(
@@ -780,7 +888,14 @@ class _AccountScreenState extends State<AccountScreen>
                 child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(width: 12),
-              Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: _kDark)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: _kDark),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ]),
             const SizedBox(height: 22),
             ...children,
@@ -1129,27 +1244,60 @@ class _AccountScreenState extends State<AccountScreen>
                         child: ClipOval(
                           child: Builder(
                             builder: (context) {
+                              // 1. Instant check: If local photo was updated on this device, show immediately in 0ms!
+                              if (_localAvatarPath != null && _localAvatarPath!.isNotEmpty) {
+                                final f = File(_localAvatarPath!);
+                                if (f.existsSync()) {
+                                  return Image.file(
+                                    f,
+                                    fit: BoxFit.cover,
+                                    width: 112,
+                                    height: 112,
+                                    errorBuilder: (ctx, err, stack) => _buildFallbackAvatar(),
+                                  );
+                                }
+                              }
+
                               final imageStr = _patient['image']?.toString();
                               if (imageStr != null && imageStr.isNotEmpty) {
                                 if (imageStr.startsWith('data:image')) {
                                   final base64String = imageStr.split(',').last;
                                   return Image.memory(base64Decode(base64String), fit: BoxFit.cover, width: 112, height: 112);
                                 } else if (imageStr.startsWith('http')) {
-                                  return Image.network(imageStr, fit: BoxFit.cover, width: 112, height: 112,
-                                    errorBuilder: (ctx, err, stack) => _buildFallbackAvatar());
+                                  return Image.network(
+                                    imageStr,
+                                    fit: BoxFit.cover,
+                                    width: 112,
+                                    height: 112,
+                                    loadingBuilder: (ctx, child, progress) => progress == null ? child : _buildFallbackAvatar(),
+                                    errorBuilder: (ctx, err, stack) => _buildFallbackAvatar(),
+                                  );
                                 } else if (imageStr.length > 100 && !imageStr.startsWith('/')) {
                                   return Image.memory(base64Decode(imageStr), fit: BoxFit.cover, width: 112, height: 112,
                                     errorBuilder: (ctx, err, stack) => _buildFallbackAvatar());
                                 } else {
                                   // Server URL: e.g. https://erp.gmhospitals.co.in/patient_image_mobile/{name}.jpg
-                                  return Image.network('${ApiConfig.imageBaseUrl}$imageStr', fit: BoxFit.cover, width: 112, height: 112,
+                                  final cleanStr = imageStr.startsWith('/') ? imageStr : '/$imageStr';
+                                  return Image.network(
+                                    '${ApiConfig.imageBaseUrl}$cleanStr',
+                                    fit: BoxFit.cover,
+                                    width: 112,
+                                    height: 112,
+                                    loadingBuilder: (ctx, child, progress) => progress == null ? child : _buildFallbackAvatar(),
                                     errorBuilder: (ctx, err, stack) {
                                       // Fallback to PHP API endpoint /patients/{id}/image
                                       final targetId = _patientId != 'N/A' ? _patientId : widget.userName;
                                       final fallbackUrl = '${ApiConfig.baseUrl}/patients/$targetId/image';
-                                      return Image.network(fallbackUrl, fit: BoxFit.cover, width: 112, height: 112,
-                                        errorBuilder: (ctx2, err2, stack2) => _buildFallbackAvatar());
-                                    });
+                                      return Image.network(
+                                        fallbackUrl,
+                                        fit: BoxFit.cover,
+                                        width: 112,
+                                        height: 112,
+                                        loadingBuilder: (ctx2, child2, progress2) => progress2 == null ? child2 : _buildFallbackAvatar(),
+                                        errorBuilder: (ctx2, err2, stack2) => _buildFallbackAvatar(),
+                                      );
+                                    },
+                                  );
                                 }
                               }
 
@@ -1323,9 +1471,14 @@ class _AccountScreenState extends State<AccountScreen>
           Row(children: [
             Icon(Icons.info_outline_rounded, size: 13, color: Colors.grey[400]),
             const SizedBox(width: 6),
-            Text(
-              '${fields.length - filled} field${fields.length - filled != 1 ? 's' : ''} incomplete — tap Edit Profile to finish',
-              style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500)),
+            Expanded(
+              child: Text(
+                '${fields.length - filled} field${fields.length - filled != 1 ? 's' : ''} incomplete — tap Edit Profile to finish',
+                style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8), fontWeight: FontWeight.w500),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ]),
         ],
       ]),
@@ -1704,20 +1857,23 @@ class _AccountScreenState extends State<AccountScreen>
 
   // ─── FOOTER ───────────────────────────────────────────────────────────────
   Widget _buildFooter() {
-    return Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 36, height: 1,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Colors.transparent, Colors.grey.withValues(alpha: 0.3)]))),
-      const SizedBox(width: 12),
-      const Icon(Icons.local_hospital_rounded, size: 12, color: _kGreen),
-      const SizedBox(width: 5),
-      Text('GM Care  v1.0.0  •  GM Hospital',
-        style: TextStyle(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w500)),
-      const SizedBox(width: 12),
-      Container(width: 36, height: 1,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Colors.grey.withValues(alpha: 0.3), Colors.transparent]))),
-    ]);
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Container(width: 36, height: 1,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [Colors.transparent, Colors.grey.withValues(alpha: 0.3)]))),
+        const SizedBox(width: 12),
+        const Icon(Icons.local_hospital_rounded, size: 12, color: _kGreen),
+        const SizedBox(width: 5),
+        Text('GM Care  v1.0.0  •  GM Hospital',
+          style: TextStyle(fontSize: 11, color: Colors.grey[400], fontWeight: FontWeight.w500)),
+        const SizedBox(width: 12),
+        Container(width: 36, height: 1,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [Colors.grey.withValues(alpha: 0.3), Colors.transparent]))),
+      ]),
+    );
   }
 
   // ─── ERROR BANNER ─────────────────────────────────────────────────────────

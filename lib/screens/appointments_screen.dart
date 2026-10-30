@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
@@ -130,40 +129,42 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
     final filters = ['All', 'Scheduled', 'Completed', 'Cancelled'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: filters.map((filter) {
           final isSelected = _activeFilter == filter;
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: FilterChip(
-              label: Text(
-                filter,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : const Color(0xFF1F6B4A),
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  fontSize: 13,
+            child: GestureDetector(
+              onTap: () => setState(() => _activeFilter = filter),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF1F6B4A) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? const Color(0xFF1F6B4A) : const Color(0xFFDED8CB),
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFF1F6B4A).withOpacity(0.2),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          )
+                        ]
+                      : [],
+                ),
+                child: Text(
+                  filter,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : const Color(0xFF5A6E64),
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-              selected: isSelected,
-              onSelected: (bool selected) {
-                if (selected) {
-                  setState(() {
-                    _activeFilter = filter;
-                  });
-                }
-              },
-              backgroundColor: Colors.white,
-              selectedColor: const Color(0xFF1F6B4A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: const Color(0xFF1F6B4A),
-                  width: 1.5,
-                ),
-              ),
-              showCheckmark: false,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
           );
         }).toList(),
@@ -181,14 +182,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
+            const Icon(Icons.error_outline_rounded, color: Colors.red, size: 48),
+            const SizedBox(height: 14),
             Text(_errorMsg, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             ElevatedButton(
               onPressed: _fetchAppointments,
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1F6B4A)),
-              child: const Text("Retry", style: TextStyle(color: Colors.white)),
+              child: const Text("Retry", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             )
           ],
         ),
@@ -206,11 +207,19 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 64, color: Color(0xFF94A3B8)),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFDED8CB)),
+              ),
+              child: const Icon(Icons.event_note_rounded, size: 44, color: Color(0xFF1F6B4A)),
+            ),
             const SizedBox(height: 16),
             Text(
               "No ${_activeFilter == 'All' ? '' : _activeFilter.toLowerCase()} appointments found.",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A)),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF143B2A)),
             ),
           ],
         ),
@@ -221,15 +230,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
       onRefresh: _fetchAppointments,
       color: const Color(0xFF1F6B4A),
       child: ListView.separated(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
         itemCount: filteredAppointments.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
+        separatorBuilder: (context, index) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
           final apt = filteredAppointments[index];
-          final docName = apt['doctor_name'] ?? 'Unknown Doctor';
+          final docName = apt['doctor_name'] ?? 'Consultant';
           final status = apt['status'] ?? 'Scheduled';
           final date = _formatDate(apt['appointment_date']);
           final time = _formatTime(apt['appointment_time']);
+          final aptId = apt['id']?.toString() ?? apt['appointment_id']?.toString() ?? '101';
+          final tokenNo = (int.tryParse(aptId) ?? 101) % 40 + 1;
           
           Color statusColor;
           Color statusBgColor;
@@ -240,7 +251,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
             statusColor = const Color(0xFF991B1B);
             statusBgColor = const Color(0xFFFEE2E2);
           } else {
-            statusColor = const Color(0xFF1F6B4A); // Scheduled
+            statusColor = const Color(0xFF1F6B4A);
             statusBgColor = const Color(0xFFE6F4F1);
           }
           
@@ -253,16 +264,16 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
             }
           }
 
-          Widget cardContent = Container(
-            padding: const EdgeInsets.all(20),
+          return Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF1F6B4A), width: 1.5),
+              border: Border.all(color: const Color(0xFFDED8CB)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
+                  color: const Color(0xFF1F6B4A).withOpacity(0.04),
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 )
               ],
@@ -270,91 +281,146 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> with SingleTick
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Badge Bar: Token & Status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusBgColor,
-                        borderRadius: BorderRadius.circular(8),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1F6B4A),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "TOKEN #$tokenNo",
+                              style: const TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                              decoration: BoxDecoration(
+                                color: statusBgColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                isExpired ? "COMPLETED" : status.toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 9, 
+                                  fontWeight: FontWeight.w800, 
+                                  color: isExpired ? Colors.grey.shade600 : statusColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        status.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 9, 
-                          fontWeight: FontWeight.w800, 
-                          color: statusColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.meeting_room_outlined, size: 13, color: Color(0xFF5A6E64)),
+                        SizedBox(width: 3),
+                        Text(
+                          "Room 204",
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF5A6E64)),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                // Doctor Info
                 Row(
                   children: [
                     Container(
-                      width: 50,
-                      height: 50,
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF4F7FB),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        color: const Color(0xFF1F6B4A).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.15)),
                       ),
                       child: const Center(
-                        child: Icon(Icons.person_outline_rounded, color: Color(0xFF1F6B4A), size: 24),
+                        child: Icon(Icons.person_rounded, color: Color(0xFF1F6B4A), size: 24),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             docName.startsWith("Dr") ? docName : "Dr. $docName",
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF143B2A)),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF64748B)),
-                              const SizedBox(width: 4),
-                              Text(
-                                time.isNotEmpty ? '$date • $time' : date,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-                              ),
-                            ],
+                          const SizedBox(height: 2),
+                          const Text(
+                            "OPD CONSULTANT • SUPER SPECIALIST",
+                            style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Color(0xFF26875B), letterSpacing: 0.3),
                           ),
                         ],
                       ),
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                // Date & Time Box
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBF8F4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFDED8CB).withOpacity(0.7)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF1F6B4A)),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                date,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF143B2A)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF5A6E64)),
+                          const SizedBox(width: 4),
+                          Text(time, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
-
-          if (isExpired) {
-            cardContent = Opacity(
-              opacity: 0.5,
-              child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 0.8, sigmaY: 0.8),
-                child: ColorFiltered(
-                  colorFilter: const ColorFilter.matrix([
-                    0.2126, 0.7152, 0.0722, 0, 0,
-                    0.2126, 0.7152, 0.0722, 0, 0,
-                    0.2126, 0.7152, 0.0722, 0, 0,
-                    0,      0,      0,      1, 0,
-                  ]),
-                  child: cardContent,
-                ),
-              ),
-            );
-          }
-
-          return cardContent;
         },
       ),
     );

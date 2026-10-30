@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,8 +14,6 @@ import '../widgets/radial_quick_services_hub.dart';
 import '../widgets/app_bottom_nav_bar.dart';
 import 'account_screen.dart';
 import 'appointments_screen.dart';
-import 'billing_history_screen.dart';
-import 'health_reports_screen.dart';
 import 'specialist_doctors_screen.dart';
 
 class PatientDashboard extends StatefulWidget {
@@ -39,7 +38,7 @@ class PatientDashboard extends StatefulWidget {
   State<PatientDashboard> createState() => _PatientDashboardState();
 }
 
-class _PatientDashboardState extends State<PatientDashboard> {
+class _PatientDashboardState extends State<PatientDashboard> with SingleTickerProviderStateMixin {
   String get userName => widget.userName;
   String get location => widget.location;
   String get age => widget.age;
@@ -47,7 +46,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
   String get cookie => widget.cookie;
   String get patientId => widget.patientId;
 
-  Key _refreshKey = UniqueKey();
   int _activeNavIndex = 0;
   List<dynamic> _doctors = [];
   bool _isLoadingDoctors = true;
@@ -55,6 +53,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
   final List<String> _categories = ['All', 'Heart', 'Brain', 'Dental', 'Child Care', 'ENT', 'Eye', 'Skin', 'Orthopedic', 'Women Care'];
   String? _profileImageUrl;
   String? _localAvatarPath;
+
+  // Pulse Telemetry & SOS Animation
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   // Cover Flow State
   late PageController _pageController;
@@ -65,9 +67,15 @@ class _PatientDashboardState extends State<PatientDashboard> {
   @override
   void initState() {
     super.initState();
+    _loadLocalAvatar();
     _fetchDoctors();
     _fetchPatientProfile();
-    _pageController = PageController(viewportFraction: 0.82, initialPage: _currentSpecialtyPage);
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _pulseAnimation = CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
+    _pageController = PageController(viewportFraction: 0.78, initialPage: _currentSpecialtyPage);
     _startCarouselTimer();
   }
 
@@ -75,7 +83,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
     _carouselTimer?.cancel();
     if (_autoPlayCarousel) {
       _carouselTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-        if (_pageController.hasClients) {
+        if (_pageController.hasClients && _pageController.positions.length == 1) {
           _pageController.nextPage(
             duration: const Duration(milliseconds: 800),
             curve: Curves.easeInOutCubic,
@@ -174,14 +182,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
   }
 
   Future<void> _handleRefresh() async {
-    setState(() {
-      _refreshKey = UniqueKey();
-    });
-    await Future.delayed(const Duration(milliseconds: 1500));
+    HapticFeedback.lightImpact();
+    await Future.wait([
+      _fetchDoctors(),
+      _fetchPatientProfile(),
+    ]);
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
     _carouselTimer?.cancel();
     _pageController.dispose();
     super.dispose();
@@ -196,15 +206,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
           children: [
             RefreshIndicator(
               onRefresh: _handleRefresh,
+              color: const Color(0xFF1F6B4A),
+              backgroundColor: Colors.white,
               child: SingleChildScrollView(
-                key: _refreshKey,
-                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 110.0),
+                padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 110.0),
                 physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    const Divider(color: Color(0xFF1F6B4A), thickness: 1, height: 32),
+                    _buildVitalsTelemetryBar(),
                     _buildFindDoctorsBySpeciality(),
                     const SizedBox(height: 24),
                     AppointmentsSection(
@@ -340,10 +351,478 @@ class _PatientDashboardState extends State<PatientDashboard> {
     );
   }
 
+  void _showEmergencyModal(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.82,
+          ),
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 4.5,
+                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4)),
+                ),
+                const SizedBox(height: 18),
+                // Glowing Pulse Emergency Icon
+                AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) => Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDC2626).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.25 * _pulseAnimation.value),
+                          blurRadius: 18 * _pulseAnimation.value,
+                          spreadRadius: 4 * _pulseAnimation.value,
+                        ),
+                      ],
+                    ),
+                    child: child,
+                  ),
+                  child: const Icon(Icons.emergency_rounded, color: Color(0xFFDC2626), size: 36),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  "GM Emergency & Trauma Center",
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF143B2A)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Immediate resuscitation, Level-1 Trauma response & Cardiac Cath Lab emergency response team on standby 24x7.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12.5, color: Colors.grey[700], height: 1.35),
+                ),
+                const SizedBox(height: 18),
+                // Helpline 1
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBF8F4),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFDED8CB)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text("Hospital Emergency Hotline (24x7)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64))),
+                            SizedBox(height: 2),
+                            Text("+91 80 2345 6789", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF143B2A))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Helpline 2
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFCA5A5).withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.airport_shuttle_rounded, color: Color(0xFFDC2626), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text("Rapid Ambulance Dispatch (National)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF991B1B))),
+                            SizedBox(height: 2),
+                            Text("108 / 112 (Toll Free)", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("Dismiss", style: TextStyle(color: Color(0xFF5A6E64), fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVitalsTelemetryBar() {
+    return Container(
+      margin: const EdgeInsets.only(top: 14, bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFDED8CB)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1F6B4A).withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) => Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF26875B),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF26875B).withValues(alpha: 0.45 * _pulseAnimation.value),
+                            blurRadius: 6 * _pulseAnimation.value,
+                            spreadRadius: 2 * _pulseAnimation.value,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "CLINICAL TELEMETRY",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1F6B4A),
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.bolt_rounded, size: 12, color: Color(0xFF26875B)),
+                  SizedBox(width: 2),
+                  Text(
+                    "Live • 08:30 AM",
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF5A6E64),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildVitalTile("BP", "118/76", "mmHg", Icons.favorite_rounded, const Color(0xFF1F6B4A)),
+              const SizedBox(width: 8),
+              _buildVitalTile("PULSE", "72", "bpm", Icons.monitor_heart_rounded, const Color(0xFF26875B)),
+              const SizedBox(width: 8),
+              _buildVitalTile("SpO2", "99", "%", Icons.air_rounded, const Color(0xFF143B2A)),
+              const SizedBox(width: 8),
+              _buildVitalTile("GLUCOSE", "94", "mg/dL", Icons.water_drop_rounded, const Color(0xFF5A6E64)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVitalTile(String label, String value, String unit, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFBF8F4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFDED8CB).withValues(alpha: 0.7)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (label == "PULSE")
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) => Transform.scale(
+                      scale: 0.95 + 0.15 * _pulseAnimation.value,
+                      child: child,
+                    ),
+                    child: Icon(icon, size: 11, color: color),
+                  )
+                else
+                  Icon(icon, size: 11, color: color),
+                const SizedBox(width: 2),
+                Flexible(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF5A6E64),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              unit,
+              style: const TextStyle(
+                fontSize: 7.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF8DA89C),
+              ),
+              maxLines: 1,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Top Hospital Tag & Emergency Hotline Strip
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.22),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.local_hospital_rounded, color: Colors.white, size: 16),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Flexible(
+                              child: Text(
+                                "GM HOSPITALS",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF143B2A),
+                                  letterSpacing: 0.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.2)),
+                              ),
+                              child: const Text(
+                                "NABH",
+                                style: TextStyle(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF1F6B4A),
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 1),
+                        const Text(
+                          "Super Specialty & Research Institute",
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF5A6E64),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () => _showEmergencyModal(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDC2626).withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFDC2626).withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _pulseAnimation,
+                          builder: (context, child) => Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDC2626),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFDC2626).withValues(alpha: 0.45 * _pulseAnimation.value),
+                                  blurRadius: 6 * _pulseAnimation.value,
+                                  spreadRadius: 2 * _pulseAnimation.value,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        const Text(
+                          "24/7 SOS",
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFFDC2626),
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotificationsScreen(
+                          patientId: widget.patientId.isNotEmpty ? widget.patientId : widget.userName,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(7.5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFDED8CB)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.notifications_none_rounded, size: 18, color: Color(0xFF1F6B4A)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        // Patient Clinical Profile Pass
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -360,99 +839,245 @@ class _PatientDashboardState extends State<PatientDashboard> {
               ),
             ).then((_) => _fetchPatientProfile());
           },
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF0E5236),
-                  border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.3), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    )
-                  ],
-                ),
-                child: ClipOval(
-                  child: Builder(
-                    builder: (context) {
-                      if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
-                        if (_profileImageUrl!.startsWith('data:image')) {
-                          final base64String = _profileImageUrl!.split(',').last;
-                          return Image.memory(base64Decode(base64String), fit: BoxFit.cover, width: 44, height: 44);
-                        } else if (_profileImageUrl!.startsWith('http')) {
-                          return Image.network(_profileImageUrl!, fit: BoxFit.cover, width: 44, height: 44,
-                            errorBuilder: (ctx, err, stack) => _buildAvatarFallback());
-                        } else if (_profileImageUrl!.length > 100 && !_profileImageUrl!.startsWith('/')) {
-                          return Image.memory(base64Decode(_profileImageUrl!), fit: BoxFit.cover, width: 44, height: 44,
-                            errorBuilder: (ctx, err, stack) => _buildAvatarFallback());
-                        } else {
-                          // Try server URL
-                          return Image.network(
-                            '${ApiConfig.imageBaseUrl}$_profileImageUrl',
-                            fit: BoxFit.cover,
-                            width: 44,
-                            height: 44,
-                            errorBuilder: (ctx, err, stack) {
-                              final pId = widget.patientId.isNotEmpty ? widget.patientId : widget.userName;
-                              return Image.network(
-                                '${ApiConfig.baseUrl}/patients/$pId/image',
-                                fit: BoxFit.cover,
-                                width: 44,
-                                height: 44,
-                                errorBuilder: (ctx2, err2, stack2) => _buildAvatarFallback(),
-                              );
-                            },
-                          );
-                        }
-                      }
-                      return _buildAvatarFallback();
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Welcome back,",
-                    style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    userName,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NotificationsScreen(
-                  patientId: widget.patientId.isNotEmpty ? widget.patientId : widget.userName,
-                ),
-              ),
-            );
-          },
           child: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0xFFDED8CB)),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 3)),
+                BoxShadow(
+                  color: const Color(0xFF1F6B4A).withValues(alpha: 0.05),
+                  blurRadius: 18,
+                  offset: const Offset(0, 4),
+                )
               ],
             ),
-            child: const Icon(Icons.notifications_none_outlined, size: 22, color: Color(0xFF1F6B4A)),
+            child: Row(
+              children: [
+                Stack(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF0E5236),
+                        border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.3), width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          )
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Builder(
+                          builder: (context) {
+                            if (_localAvatarPath != null && _localAvatarPath!.isNotEmpty) {
+                              final f = File(_localAvatarPath!);
+                              if (f.existsSync()) {
+                                return Image.file(
+                                  f,
+                                  fit: BoxFit.cover,
+                                  width: 52,
+                                  height: 52,
+                                  errorBuilder: (ctx, err, stack) => _buildAvatarFallback(),
+                                );
+                              }
+                            }
+                            if (_profileImageUrl != null && _profileImageUrl!.isNotEmpty) {
+                              if (_profileImageUrl!.startsWith('data:image')) {
+                                final base64String = _profileImageUrl!.split(',').last;
+                                return Image.memory(base64Decode(base64String), fit: BoxFit.cover, width: 52, height: 52);
+                              } else if (_profileImageUrl!.startsWith('http')) {
+                                return Image.network(
+                                  _profileImageUrl!,
+                                  fit: BoxFit.cover,
+                                  width: 52,
+                                  height: 52,
+                                  loadingBuilder: (ctx, child, progress) => progress == null ? child : _buildAvatarFallback(),
+                                  errorBuilder: (ctx, err, stack) => _buildAvatarFallback(),
+                                );
+                              } else if (_profileImageUrl!.length > 100 && !_profileImageUrl!.startsWith('/')) {
+                                return Image.memory(base64Decode(_profileImageUrl!), fit: BoxFit.cover, width: 52, height: 52,
+                                  errorBuilder: (ctx, err, stack) => _buildAvatarFallback());
+                              } else {
+                                final cleanStr = _profileImageUrl!.startsWith('/') ? _profileImageUrl! : '/$_profileImageUrl';
+                                return Image.network(
+                                  '${ApiConfig.imageBaseUrl}$cleanStr',
+                                  fit: BoxFit.cover,
+                                  width: 52,
+                                  height: 52,
+                                  loadingBuilder: (ctx, child, progress) => progress == null ? child : _buildAvatarFallback(),
+                                  errorBuilder: (ctx, err, stack) {
+                                    final pId = widget.patientId.isNotEmpty ? widget.patientId : widget.userName;
+                                    return Image.network(
+                                      '${ApiConfig.baseUrl}/patients/$pId/image',
+                                      fit: BoxFit.cover,
+                                      width: 52,
+                                      height: 52,
+                                      loadingBuilder: (ctx2, child2, progress2) => progress2 == null ? child2 : _buildAvatarFallback(),
+                                      errorBuilder: (ctx2, err2, stack2) => _buildAvatarFallback(),
+                                    );
+                                  },
+                                );
+                              }
+                            }
+                            return _buildAvatarFallback();
+                          },
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF26875B),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              userName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF143B2A),
+                                letterSpacing: -0.3,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF26875B).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.verified_rounded, size: 9, color: Color(0xFF1F6B4A)),
+                                SizedBox(width: 3),
+                                Text(
+                                  "PATIENT RECORD",
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF1F6B4A),
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: InkWell(
+                              onTap: () {
+                                final uhid = widget.patientId.isNotEmpty ? widget.patientId : 'GM-98402';
+                                Clipboard.setData(ClipboardData(text: uhid));
+                                HapticFeedback.lightImpact();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('UHID $uhid copied to clipboard'),
+                                    duration: const Duration(seconds: 2),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: const Color(0xFF143B2A),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFBF8F4),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFDED8CB)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        "UHID: ${widget.patientId.isNotEmpty ? widget.patientId : 'GM-98402'}",
+                                        style: const TextStyle(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF1F6B4A),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 3),
+                                    const Icon(Icons.copy_rounded, size: 9, color: Color(0xFF1F6B4A)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFBF8F4),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFFDED8CB)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.location_on_outlined, size: 10, color: Color(0xFF5A6E64)),
+                                  const SizedBox(width: 2),
+                                  Flexible(
+                                    child: Text(
+                                      widget.location,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF5A6E64),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFF8DA89C)),
+              ],
+            ),
           ),
         ),
       ],
@@ -555,6 +1180,22 @@ class _PatientDashboardState extends State<PatientDashboard> {
     return 'Comprehensive health diagnosis and treatment';
   }
 
+  IconData _getCategoryIcon(String cat) {
+    switch (cat) {
+      case 'All': return Icons.grid_view_rounded;
+      case 'Heart': return Icons.favorite_rounded;
+      case 'Brain': return Icons.psychology_rounded;
+      case 'Dental': return Icons.medical_services_rounded;
+      case 'Child Care': return Icons.child_care_rounded;
+      case 'ENT': return Icons.hearing_rounded;
+      case 'Eye': return Icons.visibility_rounded;
+      case 'Skin': return Icons.health_and_safety_rounded;
+      case 'Orthopedic': return Icons.accessibility_new_rounded;
+      case 'Women Care': return Icons.pregnant_woman_rounded;
+      default: return Icons.local_hospital_rounded;
+    }
+  }
+
   Widget _buildFindDoctorsBySpeciality() {
     List<String> specialities = [];
     Map<String, int> doctorCounts = {};
@@ -593,14 +1234,13 @@ class _PatientDashboardState extends State<PatientDashboard> {
     }
 
     final navContext = context;
-    final isTablet = MediaQuery.of(context).size.width > 600;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // -- Section Header ----------------------------------------
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 4.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -610,21 +1250,23 @@ class _PatientDashboardState extends State<PatientDashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text(
-                      'Specialties',
+                      'Centers of Excellence',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF1F6B4A),
-                        letterSpacing: -0.5,
+                        color: Color(0xFF143B2A),
+                        letterSpacing: -0.4,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    SizedBox(height: 3),
                     Text(
-                      'Expert care for your health',
+                      'Super-Specialty Medical Institutes & Senior Faculty',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF1F6B4A),
-                        fontWeight: FontWeight.w500,
+                        fontSize: 11.5,
+                        color: Color(0xFF5A6E64),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -633,53 +1275,78 @@ class _PatientDashboardState extends State<PatientDashboard> {
             ],
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         
-        // -- Filter Chips -----------------------------------------
+        // -- Filter Chips with Medical Icons -----------------------
         SizedBox(
-          height: 38,
+          height: 40,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: _categories.length,
             itemBuilder: (context, index) {
               final cat = _categories[index];
               final isSelected = _selectedCategory == cat;
               return GestureDetector(
                 onTap: () {
+                  HapticFeedback.selectionClick();
                   setState(() {
                     _selectedCategory = cat;
                     _currentSpecialtyPage = 10000;
-                    if (_pageController.hasClients) {
+                    if (_pageController.hasClients && _pageController.positions.length == 1) {
                       _pageController.jumpToPage(_currentSpecialtyPage);
                     }
                   });
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  margin: EdgeInsets.only(right: index == _categories.length - 1 ? 0 : 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  margin: EdgeInsets.only(right: index == _categories.length - 1 ? 0 : 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF1F6B4A) : const Color(0xFFF3EFE6),
-                    borderRadius: BorderRadius.circular(20),
+                    gradient: isSelected
+                        ? const LinearGradient(
+                            colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
+                    color: isSelected ? null : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? const Color(0xFF1F6B4A) : const Color(0xFF1F6B4A).withOpacity(0.2),
+                      color: isSelected ? const Color(0xFF143B2A) : const Color(0xFFDED8CB),
+                      width: 1.1,
                     ),
+                    boxShadow: [
+                      if (isSelected)
+                        BoxShadow(
+                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        )
+                      else
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                    ],
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (cat == 'All') ...[
-                        Icon(Icons.grid_view_rounded, size: 16, color: isSelected ? Colors.white : const Color(0xFF1F6B4A)),
-                        const SizedBox(width: 6),
-                      ],
+                      Icon(
+                        _getCategoryIcon(cat),
+                        size: 15,
+                        color: isSelected ? Colors.white : const Color(0xFF1F6B4A),
+                      ),
+                      const SizedBox(width: 6),
                       Text(
                         cat,
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                          color: isSelected ? Colors.white : const Color(0xFF1F6B4A),
+                          fontSize: 12.5,
+                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          color: isSelected ? Colors.white : const Color(0xFF143B2A),
                         ),
                       ),
                     ],
@@ -689,7 +1356,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
             },
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 18),
 
         // -- Explore Specialties Responsive Area ---------------------------------
         _isLoadingDoctors
@@ -699,24 +1366,10 @@ class _PatientDashboardState extends State<PatientDashboard> {
                 : LayoutBuilder(
                     builder: (context, constraints) {
                       final width = constraints.maxWidth;
-                      final bool isMobile = width < 600;
-                      final bool isTablet = width >= 600 && width <= 1024;
                       final bool isDesktop = width > 1024;
 
-                      if (isMobile && _pageController.viewportFraction != 0.75) {
-                        final oldPage = _pageController.hasClients ? _pageController.page?.round() ?? _currentSpecialtyPage : _currentSpecialtyPage;
-                        _pageController.dispose();
-                        _pageController = PageController(viewportFraction: 0.75, initialPage: oldPage);
-                      } else if (isTablet && _pageController.viewportFraction != 0.50) {
-                        final oldPage = _pageController.hasClients ? _pageController.page?.round() ?? _currentSpecialtyPage : _currentSpecialtyPage;
-                        _pageController.dispose();
-                        _pageController = PageController(viewportFraction: 0.50, initialPage: oldPage);
-                      }
-
-                      Widget content;
-
                       if (isDesktop) {
-                        content = Wrap(
+                        return Wrap(
                           spacing: 24,
                           runSpacing: 24,
                           alignment: WrapAlignment.center,
@@ -755,7 +1408,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           }).toList(),
                         );
                       } else {
-                        content = Column(
+                        return Column(
                           children: [
                             SizedBox(
                               height: 380,
@@ -780,14 +1433,16 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                     animation: _pageController,
                                     builder: (context, child) {
                                       double diff = 0.0;
-                                      if (_pageController.position.haveDimensions) {
-                                        diff = _pageController.page! - index;
+                                      if (_pageController.hasClients && 
+                                          _pageController.positions.length == 1 && 
+                                          _pageController.position.haveDimensions) {
+                                        diff = (_pageController.page ?? _currentSpecialtyPage.toDouble()) - index;
                                       } else {
                                         diff = (_currentSpecialtyPage - index).toDouble();
                                       }
                                       
-                                      final double scale = (1 - (diff.abs() * 0.15)).clamp(0.85, 1.0);
-                                      final double opacity = (1 - (diff.abs() * 0.40)).clamp(0.60, 1.0);
+                                      final double scale = (1 - (diff.abs() * 0.12)).clamp(0.88, 1.0);
+                                      final double opacity = (1 - (diff.abs() * 0.35)).clamp(0.65, 1.0);
 
                                       return Transform.scale(
                                         scale: scale,
@@ -806,7 +1461,9 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                       isDesktop: false,
                                       onTap: () {
                                         if (index != _currentSpecialtyPage) {
-                                          _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOutCubic);
+                                          if (_pageController.hasClients && _pageController.positions.length == 1) {
+                                            _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOutCubic);
+                                          }
                                         } else {
                                           Navigator.push(navContext, MaterialPageRoute(builder: (_) => SpecialistDoctorsScreen(
                                             specialization: spec,
@@ -826,7 +1483,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                               ),
                             ),
                             if (specialities.isNotEmpty) ...[
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 16),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: List.generate(
@@ -841,7 +1498,7 @@ class _PatientDashboardState extends State<PatientDashboard> {
                                       height: 6,
                                       width: isDotActive ? 24 : 8,
                                       decoration: BoxDecoration(
-                                        color: isDotActive ? const Color(0xFF1F6B4A) : const Color(0xFF1F6B4A).withOpacity(0.2),
+                                        color: isDotActive ? const Color(0xFF1F6B4A) : const Color(0xFF1F6B4A).withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                     );
@@ -852,13 +1509,6 @@ class _PatientDashboardState extends State<PatientDashboard> {
                           ],
                         );
                       }
-
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        switchInCurve: Curves.easeInOutCubic,
-                        switchOutCurve: Curves.easeInOutCubic,
-                        child: content,
-                      );
                     },
                   ),
       ],
@@ -1147,18 +1797,18 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: isDesktop ? 0 : 4, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFDED8CB), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1F6B4A).withOpacity(0.08),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
+              color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+              blurRadius: 22,
+              offset: const Offset(0, 8),
             )
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -1174,25 +1824,100 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                         child: Image.asset(
                           imagePath,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.medical_services, size: 60, color: Color(0xFF1F6B4A))),
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFF143B2A),
+                            child: const Center(
+                              child: Icon(Icons.medical_services_rounded, size: 54, color: Colors.white70),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.5),
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.3),
+                              ],
+                              stops: const [0.0, 0.45, 1.0],
+                            ),
+                          ),
                         ),
                       ),
                       Positioned(
-                        top: 16,
-                        right: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white, width: 1.5),
+                        top: 12,
+                        left: 12,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF143B2A).withValues(alpha: 0.85),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.stars_rounded, size: 10, color: Color(0xFFF3C343)),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    "LEVEL-1 INSTITUTE",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          child: const Text(
-                            "100% Match",
-                            style: TextStyle(
-                              color: Color(0xFF1F6B4A),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.94),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white, width: 1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.verified_user_rounded, size: 11, color: Color(0xFF1F6B4A)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    doctorCount > 0 ? "$doctorCount Specialists" : "Senior Faculty",
+                                    style: const TextStyle(
+                                      color: Color(0xFF143B2A),
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -1204,7 +1929,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
               Expanded(
                 flex: 4,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                   color: Colors.white,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1213,24 +1938,47 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            spec,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF2D3748),
-                              height: 1.1,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  spec,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF143B2A),
+                                    height: 1.1,
+                                    letterSpacing: -0.3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF26875B).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  "OPD ACTIVE",
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1F6B4A),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 5),
                           Text(
                             desc,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: const Color(0xFF2D3748).withOpacity(0.7),
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: Color(0xFF5A6E64),
                               height: 1.3,
+                              fontWeight: FontWeight.w500,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -1239,26 +1987,42 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                       ),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1F6B4A),
-                          borderRadius: BorderRadius.circular(24),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1F6B4A).withValues(alpha: 0.25),
-                              blurRadius: 12,
+                              color: const Color(0xFF1F6B4A).withValues(alpha: 0.28),
+                              blurRadius: 10,
                               offset: const Offset(0, 4),
                             )
                           ],
                         ),
                         alignment: Alignment.center,
-                        child: const Text(
-                          "Find Doctors",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Flexible(
+                              child: Text(
+                                "Consult Super-Specialist Faculty",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 14),
+                          ],
                         ),
                       ),
                     ],
