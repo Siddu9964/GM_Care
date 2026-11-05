@@ -108,13 +108,13 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                         border: Border.all(color: const Color(0xFFDED8CB)),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1F6B4A).withOpacity(0.06),
+                            color: const Color(0xFF1BA6B1).withOpacity(0.06),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           )
                         ],
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1F6B4A), size: 20),
+                      child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1BA6B1), size: 20),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -127,7 +127,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF143B2A),
+                            color: Color(0xFF0E4D54),
                             letterSpacing: -0.4,
                           ),
                         ),
@@ -137,7 +137,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                           style: TextStyle(
                             fontSize: 9.5,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF26875B),
+                            color: Color(0xFF1596A1),
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -147,7 +147,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F6B4A),
+                      color: const Color(0xFF1BA6B1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -170,7 +170,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                   border: Border.all(color: const Color(0xFFDED8CB)),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1F6B4A).withOpacity(0.03),
+                      color: const Color(0xFF1BA6B1).withOpacity(0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -179,19 +179,19 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    const Icon(Icons.search_rounded, color: Color(0xFF1F6B4A), size: 22),
+                    const Icon(Icons.search_rounded, color: Color(0xFF1BA6B1), size: 22),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
                         onChanged: (val) => setState(() => _searchQuery = val),
                         decoration: const InputDecoration(
                           hintText: "Search doctor name, specialty, super-specialty...",
-                          hintStyle: TextStyle(color: Color(0xFF8DA89C), fontWeight: FontWeight.w500, fontSize: 13),
+                          hintStyle: TextStyle(color: Color(0xFF5A858C), fontWeight: FontWeight.w500, fontSize: 13),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
                         ),
-                        style: const TextStyle(color: Color(0xFF143B2A), fontWeight: FontWeight.w700, fontSize: 14),
+                        style: const TextStyle(color: Color(0xFF0E4D54), fontWeight: FontWeight.w700, fontSize: 14),
                       ),
                     ),
                     if (_searchQuery.isNotEmpty)
@@ -227,15 +227,15 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF1F6B4A) : Colors.white,
+                        color: isSelected ? const Color(0xFF1BA6B1) : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF1F6B4A) : const Color(0xFFDED8CB),
+                          color: isSelected ? const Color(0xFF1BA6B1) : const Color(0xFFDED8CB),
                         ),
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: const Color(0xFF1F6B4A).withOpacity(0.2),
+                                  color: const Color(0xFF1BA6B1).withOpacity(0.2),
                                   blurRadius: 6,
                                   offset: const Offset(0, 2),
                                 )
@@ -271,12 +271,12 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                               shape: BoxShape.circle,
                               border: Border.all(color: const Color(0xFFDED8CB)),
                             ),
-                            child: const Icon(Icons.person_search_rounded, size: 40, color: Color(0xFF1F6B4A)),
+                            child: const Icon(Icons.person_search_rounded, size: 40, color: Color(0xFF1BA6B1)),
                           ),
                           const SizedBox(height: 14),
                           const Text(
                             "No Specialists Found",
-                            style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF143B2A), fontSize: 16),
+                            style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF0E4D54), fontSize: 16),
                           ),
                           const SizedBox(height: 4),
                           const Text(
@@ -350,7 +350,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
         border: Border.all(color: const Color(0xFFDED8CB)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1F6B4A).withOpacity(0.04), 
+            color: const Color(0xFF1BA6B1).withOpacity(0.04), 
             blurRadius: 14, 
             offset: const Offset(0, 4),
           ),
@@ -371,7 +371,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                     height: 58,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2), width: 1.5),
+                      border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2), width: 1.5),
                       image: DecorationImage(
                         image: NetworkImage(photoUrl),
                         fit: BoxFit.cover,
@@ -386,7 +386,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                         width: 14,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF26875B),
+                          color: const Color(0xFF1596A1),
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
@@ -409,7 +409,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF143B2A),
+                              color: Color(0xFF0E4D54),
                               letterSpacing: -0.3,
                             ),
                             maxLines: 1,
@@ -419,7 +419,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
-                            color: isAvailable ? const Color(0xFF26875B).withOpacity(0.1) : Colors.grey.shade100,
+                            color: isAvailable ? const Color(0xFF1596A1).withOpacity(0.1) : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -427,7 +427,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                             style: TextStyle(
                               fontSize: 8.5,
                               fontWeight: FontWeight.w900,
-                              color: isAvailable ? const Color(0xFF1F6B4A) : Colors.grey.shade600,
+                              color: isAvailable ? const Color(0xFF1BA6B1) : Colors.grey.shade600,
                             ),
                           ),
                         ),
@@ -439,7 +439,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                       style: const TextStyle(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF26875B),
+                        color: Color(0xFF1596A1),
                         letterSpacing: 0.4,
                       ),
                       maxLines: 1,
@@ -477,14 +477,14 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF1F6B4A)),
+                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF1BA6B1)),
                       const SizedBox(width: 5),
                       Flexible(
                         child: Text(
                           timings,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF143B2A)),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0E4D54)),
                         ),
                       ),
                     ],
@@ -493,7 +493,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                 const SizedBox(width: 8),
                 Text(
                   "OPD: ₹$fee",
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A)),
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1)),
                 ),
               ],
             ),
@@ -542,7 +542,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F6B4A),
+                    backgroundColor: const Color(0xFF1BA6B1),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

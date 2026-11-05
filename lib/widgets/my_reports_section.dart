@@ -124,7 +124,7 @@ class _MyReportsSectionState extends State<MyReportsSection> {
           children: [
             const Text(
               "Health Reports",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF143B2A)),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0E4D54)),
             ),
             if (_reports.isNotEmpty)
               GestureDetector(
@@ -145,10 +145,10 @@ class _MyReportsSectionState extends State<MyReportsSection> {
                   children: const [
                     Text(
                       "View Files",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A)),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1BA6B1)),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1F6B4A)),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1BA6B1)),
                   ],
                 ),
               )
@@ -158,7 +158,7 @@ class _MyReportsSectionState extends State<MyReportsSection> {
         SizedBox(
           height: 140, 
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)))
               : _errorMsg.isNotEmpty
                   ? Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.red)))
                   : ListView.separated(
@@ -199,7 +199,7 @@ class _MyReportsSectionState extends State<MyReportsSection> {
                                     width: 70,
                                     height: 70,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                                      color: const Color(0xFF1BA6B1).withValues(alpha: 0.04),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -210,18 +210,18 @@ class _MyReportsSectionState extends State<MyReportsSection> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+                                        color: const Color(0xFF1BA6B1).withValues(alpha: 0.08),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Text(
                                         "READY",
-                                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+                                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF1BA6B1)),
                                       ),
                                     ),
                                     const Spacer(),
                                     Text(
                                       title,
-                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF143B2A)),
+                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0E4D54)),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -233,7 +233,7 @@ class _MyReportsSectionState extends State<MyReportsSection> {
                                     const SizedBox(height: 8),
                                     const Align(
                                       alignment: Alignment.bottomRight,
-                                      child: Icon(Icons.download_outlined, color: Color(0xFF1F6B4A), size: 18),
+                                      child: Icon(Icons.download_outlined, color: Color(0xFF1BA6B1), size: 18),
                                     ),
                                   ],
                                 ),

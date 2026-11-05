@@ -104,7 +104,7 @@ class _AutoScrollOffersState extends State<AutoScrollOffers> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF143B2A),
+                        color: Color(0xFF0E4D54),
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -126,13 +126,13 @@ class _AutoScrollOffersState extends State<AutoScrollOffers> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F6B4A).withOpacity(0.08),
+                  color: const Color(0xFF1BA6B1).withOpacity(0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2)),
+                  border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2)),
                 ),
                 child: const Text(
                   "NABH CERTIFIED",
-                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A)),
+                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1)),
                 ),
               ),
             ],
@@ -153,15 +153,15 @@ class _AutoScrollOffersState extends State<AutoScrollOffers> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                    colors: [Color(0xFF0E4D54), Color(0xFF1BA6B1)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF26875B).withOpacity(0.4), width: 1),
+                  border: Border.all(color: const Color(0xFF1596A1).withOpacity(0.4), width: 1),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF143B2A).withOpacity(0.18),
+                      color: const Color(0xFF0E4D54).withOpacity(0.18),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     )
@@ -174,26 +174,31 @@ class _AutoScrollOffersState extends State<AutoScrollOffers> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.14),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            item['tag'] as String,
-                            style: const TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFF3EFE6),
-                              letterSpacing: 0.6,
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.14),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              item['tag'] as String,
+                              style: const TextStyle(
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFFF3EFE6),
+                                letterSpacing: 0.6,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
+                        const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF26875B),
+                            color: const Color(0xFF1596A1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -204,6 +209,8 @@ class _AutoScrollOffersState extends State<AutoScrollOffers> {
                               color: Colors.white,
                               letterSpacing: 0.4,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

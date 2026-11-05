@@ -6,19 +6,19 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
-const _kPrimary   = Color(0xFF1F6B4A);
-const _kPrimaryLt = Color(0xFF26875B);
-const _kAccent    = Color(0xFF1F6B4A);
+const _kPrimary   = Color(0xFF1BA6B1);
+const _kPrimaryLt = Color(0xFF1596A1);
+const _kAccent    = Color(0xFF1BA6B1);
 const _kSurface   = Color(0xFFFFFFFF);
 const _kBg        = Color(0xFFF3EFE6);
 const _kBorder    = Color(0xFFDED8CB);
-const _kText1     = Color(0xFF143B2A);
+const _kText1     = Color(0xFF0E4D54);
 const _kText2     = Color(0xFF5A6E64);
-const _kText3     = Color(0xFF8DA89C);
+const _kText3     = Color(0xFF5A858C);
 const _kSelected  = Color(0xFFEBE6DC);
-const _kSelBd     = Color(0xFF1F6B4A);
+const _kSelBd     = Color(0xFF1BA6B1);
 const _kError     = Color(0xFFE53935);
-const _kGold      = Color(0xFF1F6B4A);
+const _kGold      = Color(0xFF1BA6B1);
 
 class AppointmentFormSheet extends StatefulWidget {
   final String userName;
@@ -82,6 +82,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
   bool          _isLoadingDepartments = true;
   bool          _isLoadingDoctors     = true;
   bool          _isSubmitting         = false;
+  DateTime?     _lastSubmitTime;
   List<dynamic> _doctors              = [];
   List<String>  _departments          = [];
   List<String>  _bookedTimes          = [];
@@ -145,7 +146,9 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
 
   @override
   void dispose() {
+    _shimmerCtrl.stop();
     _shimmerCtrl.dispose();
+    _fadeCtrl.stop();
     _fadeCtrl.dispose();
     _nameController.dispose();
     _ageController.dispose();
@@ -521,7 +524,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
           margin: const EdgeInsets.only(top: 12, bottom: 8),
           width: 40, height: 4,
           decoration: BoxDecoration(
-            color: const Color(0xFFCDD8D4),
+            color: const Color(0xFFCCE7EA),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -846,6 +849,39 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
     );
   }
 
+  String _getDoctorInitial(String rawName) {
+    String n = rawName.trim();
+    // Strip common medical title prefixes like "Dr.", "Dr ", "Doctor ", "Prof."
+    n = n.replaceFirst(RegExp(r'^(dr\.?|doctor|prof\.?)\s*', caseSensitive: false), '').trim();
+    if (n.isEmpty) {
+      n = rawName.replaceAll(RegExp(r'[^a-zA-Z]'), '').trim();
+    }
+    for (int i = 0; i < n.length; i++) {
+      final c = n[i];
+      if (RegExp(r'[a-zA-Z]').hasMatch(c)) {
+        return c.toUpperCase();
+      }
+    }
+    return 'D';
+  }
+
+  Color _getDoctorColor(String initial) {
+    const colors = [
+      Color(0xFF0E4D54), // Forest Emerald
+      Color(0xFF0F766E), // Clinical Teal
+      Color(0xFF1D4ED8), // Sapphire Blue
+      Color(0xFF6D28D9), // Deep Violet
+      Color(0xFFB45309), // Warm Amber
+      Color(0xFFBE123C), // Crimson Red
+      Color(0xFF4338CA), // Royal Indigo
+      Color(0xFF0E4D54), // Forest Emerald
+      Color(0xFF0E7490), // Ocean Cyan
+    ];
+    if (initial.isEmpty) return colors[0];
+    final code = initial.codeUnitAt(0);
+    return colors[code % colors.length];
+  }
+
   Widget _buildDoctorCard(int index) {
     final doc    = _doctors[index];
     final isSel  = _selectedDoctorIndex == index;
@@ -856,11 +892,9 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
     final spec    = doc['specialization'] ?? 'Specialist';
     final days    = doc['available_days'] ?? '';
     final fee     = doc['consultation_fee'];
-    final gender  = doc['gender'] ?? '';
     final avail   = (doc['availability'] ?? 'Available') != 'Off-Duty';
-    final imgUrl  = gender == 'Female'
-        ? 'https://i.pravatar.cc/150?img=47'
-        : 'https://i.pravatar.cc/150?img=11';
+    final docInitial  = _getDoctorInitial(name);
+    final avatarColor = _getDoctorColor(docInitial);
 
     return GestureDetector(
       onTap: () { 
@@ -899,21 +933,55 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
                 children: [
                   Stack(
                     children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: _kBg,
-                        backgroundImage: NetworkImage(imgUrl),
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              avatarColor,
+                              Color.lerp(avatarColor, const Color(0xFF082D31), 0.35)!,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: avatarColor.withValues(alpha: 0.28),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: isSel ? _kAccent : Colors.white,
+                            width: isSel ? 2.0 : 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            docInitial,
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
                       ),
                       Positioned(
-                        right: 0, bottom: 0,
+                        right: 0,
+                        bottom: 0,
                         child: Container(
-                          width: 10, height: 10,
+                          width: 11,
+                          height: 11,
                           decoration: BoxDecoration(
                             color: avail
                                 ? const Color(0xFF22C55E)
                                 : const Color(0xFF94A3B8),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 1.5),
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
                         ),
                       ),
@@ -973,14 +1041,14 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
-                      color: avail ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
+                      color: avail ? const Color(0xFFD2F5F8) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       avail ? 'Available' : 'Off-Duty',
                       style: GoogleFonts.inter(
                         fontSize: 9, fontWeight: FontWeight.w700,
-                        color: avail ? const Color(0xFF15803D) : _kText3,
+                        color: avail ? const Color(0xFF128790) : _kText3,
                       ),
                     ),
                   ),
@@ -1339,7 +1407,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [Color(0xFF0A4F33), _kPrimary],
+          colors: [Color(0xFF094E54), _kPrimary],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         boxShadow: [
@@ -1458,6 +1526,12 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
   // ══════════════════════════════════════════════════════════════════════════
 
   Future<void> _submitAppointment() async {
+    if (_isSubmitting) return;
+    final now = DateTime.now();
+    if (_lastSubmitTime != null && now.difference(_lastSubmitTime!).inMilliseconds < 1800) {
+      return;
+    }
+
     if (_selectedDoctorIndex < 0 || _selectedDoctorIndex >= _doctors.length) {
       _showMessage('Please select a doctor to continue.', isError: true);
       return;
@@ -1468,6 +1542,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
       return;
     }
 
+    _lastSubmitTime = now;
     setState(() => _isSubmitting = true);
 
     final doc = _doctors[_selectedDoctorIndex];
@@ -1612,7 +1687,10 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
               // Confirm button
               Expanded(
                 child: GestureDetector(
-                  onTap: _isSubmitting ? null : _submitAppointment,
+                  onTap: _isSubmitting ? null : () {
+                    if (_isSubmitting) return;
+                    _submitAppointment();
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     height: 50,
@@ -1688,7 +1766,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
             gradient: LinearGradient(
               begin: Alignment(-1.0 + v * 3, 0),
               end: Alignment(v * 3, 0),
-              colors: const [Color(0xFFE8F0EC), Color(0xFFD0E4D8), Color(0xFFE8F0EC)],
+              colors: const [Color(0xFFE3F5F7), Color(0xFFCCE7EA), Color(0xFFE3F5F7)],
             ),
           ),
         );

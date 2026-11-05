@@ -1,3 +1,4 @@
+import '../screens/prescriptions_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
@@ -104,11 +105,11 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
       icon: Icons.science_rounded,
     ),
     _ClinicalService(
-      id: 'insights',
-      title: "Clinical Feed",
-      subtitle: "Health Insights",
-      badge: "DAILY",
-      icon: Icons.insights_rounded,
+      id: 'prescription',
+      title: "Prescriptions",
+      subtitle: "Doctor Rx & PDF",
+      badge: "RX PDF",
+      icon: Icons.receipt_long_rounded,
     ),
   ];
 
@@ -120,7 +121,7 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)));
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)));
         },
       );
       
@@ -179,9 +180,16 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
     } else if (service.id == "emergency") {
       _showEmergencyModal();
       return;
+    } else if (service.id == "prescription") {
+      destination = PrescriptionsScreen(
+        userName: widget.userName,
+        location: widget.location,
+        cookie: widget.cookie,
+        patientId: widget.patientId,
+        age: widget.age,
+        sex: widget.sex,
+      );
     } else {
-      // Insights
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${service.title} is synced with hospital health feed.")));
       return;
     }
 
@@ -261,7 +269,7 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
                 const SizedBox(height: 14),
                 const Text(
                   "GM Emergency & Trauma Center",
-                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF143B2A)),
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF0E4D54)),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
@@ -271,36 +279,81 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
                   style: TextStyle(fontSize: 12.5, color: Colors.grey[700], height: 1.35),
                 ),
                 const SizedBox(height: 18),
-                // Helpline 1
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFBF8F4),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFDED8CB)),
+                // Helpline 1 - Nagarabhavi
+                GestureDetector(
+                  onTap: () {
+                    const MethodChannel('com.gmcare.hospital/calendar').invokeMethod('openDialer', {'phone': '08023011600'});
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBF8F4),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: const Color(0xFFDED8CB)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1BA6B1).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1BA6B1), size: 20),
+                        ),
+                        const SizedBox(width: 11),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text("Nagarabhavi Emergency Desk (24x7)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64))),
+                              SizedBox(height: 2),
+                              Text("080 2301 1600 / +91 99000 35235", style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: Color(0xFF0E4D54))),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.phone_forwarded_rounded, size: 16, color: Color(0xFF1BA6B1)),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
+                ),
+                const SizedBox(height: 8),
+                // Helpline 1B - Basaveshwaranagar
+                GestureDetector(
+                  onTap: () {
+                    const MethodChannel('com.gmcare.hospital/calendar').invokeMethod('openDialer', {'phone': '08022211600'});
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(13),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBF8F4),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: const Color(0xFFDED8CB)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1BA6B1).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1BA6B1), size: 20),
                         ),
-                        child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text("Hospital Emergency Hotline (24x7)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64))),
-                            SizedBox(height: 2),
-                            Text("+91 80 2345 6789", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF143B2A))),
-                          ],
+                        const SizedBox(width: 11),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text("Basaveshwaranagar Emergency Desk (24x7)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64))),
+                              SizedBox(height: 2),
+                              Text("080 2221 1600 / +91 99000 03527", style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: Color(0xFF0E4D54))),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const Icon(Icons.phone_forwarded_rounded, size: 16, color: Color(0xFF1BA6B1)),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -371,7 +424,7 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF143B2A),
+                        color: Color(0xFF0E4D54),
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -393,9 +446,9 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4.5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+                  color: const Color(0xFF1BA6B1).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.2)),
+                  border: Border.all(color: const Color(0xFF1BA6B1).withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -406,11 +459,11 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
                         width: 6.5,
                         height: 6.5,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF26875B),
+                          color: const Color(0xFF1596A1),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF26875B).withValues(alpha: 0.5 * _pulseAnimation.value),
+                              color: const Color(0xFF1596A1).withValues(alpha: 0.5 * _pulseAnimation.value),
                               blurRadius: 6 * _pulseAnimation.value,
                               spreadRadius: 2 * _pulseAnimation.value,
                             ),
@@ -424,7 +477,7 @@ class _RadialQuickServicesHubState extends State<RadialQuickServicesHub> with Si
                       style: TextStyle(
                         fontSize: 9.5,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF1F6B4A),
+                        color: Color(0xFF1BA6B1),
                         letterSpacing: 0.4,
                       ),
                     ),
@@ -503,8 +556,8 @@ class _ClinicalServiceTileState extends State<_ClinicalServiceTile> {
   @override
   Widget build(BuildContext context) {
     final isEmerg = widget.service.isEmergency;
-    final primaryColor = isEmerg ? const Color(0xFFDC2626) : const Color(0xFF1F6B4A);
-    final accentBg = isEmerg ? const Color(0xFFFEF2F2) : const Color(0xFFF6F8F6);
+    final primaryColor = isEmerg ? const Color(0xFFDC2626) : const Color(0xFF1BA6B1);
+    final accentBg = isEmerg ? const Color(0xFFFEF2F2) : const Color(0xFFF4F9FA);
 
     return GestureDetector(
       onTapDown: (_) {
@@ -540,7 +593,7 @@ class _ClinicalServiceTileState extends State<_ClinicalServiceTile> {
                 BoxShadow(
                   color: isEmerg 
                       ? const Color(0xFFDC2626).withValues(alpha: 0.08 + 0.08 * widget.pulseAnimation.value)
-                      : const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                      : const Color(0xFF1BA6B1).withValues(alpha: 0.04),
                   blurRadius: isEmerg ? (12 + 6 * widget.pulseAnimation.value) : 10,
                   offset: const Offset(0, 4),
                 ),
@@ -582,7 +635,7 @@ class _ClinicalServiceTileState extends State<_ClinicalServiceTile> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isEmerg ? const Color(0xFFDC2626) : const Color(0xFF143B2A),
+                    color: isEmerg ? const Color(0xFFDC2626) : const Color(0xFF0E4D54),
                     letterSpacing: -0.2,
                   ),
                   maxLines: 1,

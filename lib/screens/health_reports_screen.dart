@@ -150,7 +150,7 @@ class _HealthReportsScreenState extends State<HealthReportsScreen> {
                           BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
                         ],
                       ),
-                      child: const Icon(Icons.arrow_back, color: Color(0xFF1F6B4A), size: 20),
+                      child: const Icon(Icons.arrow_back, color: Color(0xFF1BA6B1), size: 20),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -160,12 +160,12 @@ class _HealthReportsScreenState extends State<HealthReportsScreen> {
                       children: [
                         const Text(
                           "Health Reports",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), letterSpacing: -0.5),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           "YOUR MEDICAL DOSSIER",
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.5), letterSpacing: 1.0),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.5), letterSpacing: 1.0),
                         ),
                       ],
                     ),
@@ -179,7 +179,7 @@ class _HealthReportsScreenState extends State<HealthReportsScreen> {
             // 2. Reports List
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)))
                   : _errorMsg.isNotEmpty
                       ? Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.red)))
                       : _reports.isEmpty
@@ -213,19 +213,19 @@ class _HealthReportsScreenState extends State<HealthReportsScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+              boxShadow: [BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
             ),
-            child: Icon(Icons.folder_shared_rounded, size: 64, color: const Color(0xFF1F6B4A).withOpacity(0.3)),
+            child: Icon(Icons.folder_shared_rounded, size: 64, color: const Color(0xFF1BA6B1).withOpacity(0.3)),
           ),
           const SizedBox(height: 24),
           const Text(
             "No health reports found",
-            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
             "Your consultation records will appear here.",
-            style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1F6B4A).withOpacity(0.6), fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1BA6B1).withOpacity(0.6), fontSize: 14),
           ),
         ],
       ),
@@ -323,7 +323,7 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1F6B4A).withOpacity(0.04), 
+                color: const Color(0xFF1BA6B1).withOpacity(0.04), 
                 blurRadius: 24, 
                 offset: const Offset(0, 10),
               ),
@@ -349,7 +349,7 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
                           width: 6,
                           height: 6,
                           decoration: const BoxDecoration(
-                            color: Color(0xFF10B981),
+                            color: Color(0xFF1BA6B1),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -360,7 +360,7 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
-                            color: Color(0xFF065F46),
+                            color: Color(0xFF0E4D54),
                           ),
                         ),
                       ],
@@ -368,7 +368,7 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
                   ),
                   Text(
                     dateStr,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.4)),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.4)),
                   ),
                 ],
               ),
@@ -377,18 +377,18 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
               // Middle Row: Title & Doctor Name
               Text(
                 title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), letterSpacing: -0.5),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Icon(Icons.person_outline_rounded, size: 14, color: const Color(0xFF1F6B4A).withOpacity(0.5)),
+                  Icon(Icons.person_outline_rounded, size: 14, color: const Color(0xFF1BA6B1).withOpacity(0.5)),
                   const SizedBox(width: 6),
                   Text(
                     doctorName,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF1F6B4A).withOpacity(0.6)),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF1BA6B1).withOpacity(0.6)),
                   ),
                 ],
               ),
@@ -404,12 +404,12 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
                     children: [
                       Text(
                         "Consultation ID",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.5), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.5), letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         widget.report['consultation_id'] ?? '-',
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF1F6B4A)),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF1BA6B1)),
                       ),
                     ],
                   ),
@@ -422,9 +422,9 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Text("View Report", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A))),
+                        Text("View Report", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1BA6B1))),
                         SizedBox(width: 6),
-                        Icon(Icons.description_outlined, size: 14, color: Color(0xFF1F6B4A)),
+                        Icon(Icons.description_outlined, size: 14, color: Color(0xFF1BA6B1)),
                       ],
                     ),
                   ),

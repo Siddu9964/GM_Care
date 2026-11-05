@@ -10,8 +10,8 @@ import 'package:flutter/services.dart';
 //  Indices:  0 = Home | 1 = Appointments | 2 = Chat | 3 = Profile
 // ─────────────────────────────────────────────────────────────
 
-const _kGreen     = Color(0xFF1F6B4A);
-const _kGreenGlow = Color(0xFF26875B);
+const _kGreen     = Color(0xFF1BA6B1);
+const _kGreenGlow = Color(0xFF1596A1);
 
 class AppBottomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -69,24 +69,24 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
             filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               width: navWidth,
-              height: 66,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              height: 68,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.94),
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(
-                  color: const Color(0xFF1F6B4A).withOpacity(0.12),
+                  color: const Color(0xFF1BA6B1).withOpacity(0.12),
                   width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF143B2A).withOpacity(0.10),
+                    color: const Color(0xFF0E4D54).withOpacity(0.10),
                     blurRadius: 28,
                     spreadRadius: 0,
                     offset: const Offset(0, 8),
                   ),
                   BoxShadow(
-                    color: const Color(0xFF1F6B4A).withOpacity(0.06),
+                    color: const Color(0xFF1BA6B1).withOpacity(0.06),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -175,9 +175,12 @@ class _NavButtonState extends State<_NavButton>
         ),
         child: SizedBox(
           width: 66,
-          height: 64,
-          child: widget.selected ? _SelectedItem(widget.item, widget.ripple)
-                                 : _UnselectedItem(widget.item),
+          height: 62,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: widget.selected ? _SelectedItem(widget.item, widget.ripple)
+                                   : _UnselectedItem(widget.item),
+          ),
         ),
       ),
     );
@@ -193,41 +196,44 @@ class _SelectedItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         AnimatedBuilder(
           animation: ripple,
           builder: (_, child) => Container(
-            width: 46,
-            height: 38,
+            width: 44,
+            height: 32,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [_kGreen, _kGreenGlow],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color: _kGreen.withOpacity(0.28 + ripple.value * 0.15),
-                  blurRadius: 10 + ripple.value * 6,
-                  offset: const Offset(0, 4),
+                  blurRadius: 8 + ripple.value * 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: child,
           ),
-          child: Icon(item.selectedIcon, color: Colors.white, size: 22),
+          child: Icon(item.selectedIcon, color: Colors.white, size: 20),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         Text(
           item.label,
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: 9.5,
             fontWeight: FontWeight.w800,
             color: _kGreen,
             letterSpacing: 0.1,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -242,26 +248,29 @@ class _UnselectedItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 46,
-          height: 38,
+          width: 44,
+          height: 32,
           decoration: BoxDecoration(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(item.icon, color: const Color(0xFFADB5BD), size: 22),
+          child: Icon(item.icon, color: const Color(0xFFADB5BD), size: 20),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         Text(
           item.label,
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: 9.5,
             fontWeight: FontWeight.w500,
             color: Color(0xFFADB5BD),
             letterSpacing: 0.1,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

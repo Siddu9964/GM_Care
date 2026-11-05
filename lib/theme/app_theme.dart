@@ -3,13 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Official Hospital Brand Palette
-  static const Color primaryColor   = Color(0xFF1F6B4A); // Deep Heritage Hospital Green
-  static const Color secondaryColor = Color(0xFF26875B); // Refined Mid-Green
+  static const Color primaryColor   = Color(0xFF1BA6B1); // Standard GM Hospital Teal #1BA6B1
+  static const Color secondaryColor = Color(0xFF1596A1); // Refined Mid-Teal
   static const Color backgroundColor= Color(0xFFF3EFE6); // Premium Warm Linen / Sand
   static const Color surfaceColor   = Colors.white;
   static const Color cardColor      = Colors.white;
-  static const Color textPrimary    = Color(0xFF143B2A); // Deep Greenish Charcoal
-  static const Color textSecondary  = Color(0xFF5A6E64); // Sophisticated Muted Slate
+  static const Color textPrimary    = Color(0xFF0E4D54); // Deep Teal Charcoal
+  static const Color textSecondary  = Color(0xFF4A6B70); // Sophisticated Muted Slate Teal
   static const Color borderColor    = Color(0xFFDED8CB); // Harmonious Warm Linen Border
   static const Color errorColor      = Color(0xFFDC2626); // Clean Formal Red
 

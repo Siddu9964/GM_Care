@@ -73,10 +73,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         centerTitle: true,
         title: const Text(
           'Notifications',
-          style: TextStyle(color: Color(0xFF1F6B4A), fontWeight: FontWeight.w800, fontSize: 18),
+          style: TextStyle(color: Color(0xFF1BA6B1), fontWeight: FontWeight.w800, fontSize: 18),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1F6B4A), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1BA6B1), size: 20),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
@@ -85,11 +85,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)))
           : _notifications.isEmpty
               ? _buildEmptyState()
               : RefreshIndicator(
-                  color: const Color(0xFF1F6B4A),
+                  color: const Color(0xFF1BA6B1),
                   onRefresh: _fetchNotifications,
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -116,9 +116,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_rounded, size: 64, color: const Color(0xFF1F6B4A).withOpacity(0.3)),
+          Icon(Icons.notifications_off_rounded, size: 64, color: const Color(0xFF1BA6B1).withOpacity(0.3)),
           const SizedBox(height: 16),
-          const Text('No new notifications', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A))),
+          const Text('No new notifications', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1BA6B1))),
           const SizedBox(height: 8),
           Text('You are all caught up!', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
         ],
@@ -139,15 +139,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     switch (category.toLowerCase()) {
       case 'appointment':
         icon = Icons.calendar_month_rounded;
-        iconColor = const Color(0xFF1F6B4A);
+        iconColor = const Color(0xFF1BA6B1);
         break;
       case 'billing':
         icon = Icons.receipt_long_rounded;
-        iconColor = const Color(0xFF1F6B4A);
+        iconColor = const Color(0xFF1BA6B1);
         break;
       default:
         icon = Icons.notifications_active_rounded;
-        iconColor = const Color(0xFF1F6B4A);
+        iconColor = const Color(0xFF1BA6B1);
     }
 
     return Container(
@@ -156,7 +156,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       decoration: BoxDecoration(
         color: isRead ? Colors.white.withOpacity(0.6) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: isRead ? null : Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2), width: 0.8),
+        border: isRead ? null : Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2), width: 0.8),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -191,7 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         style: TextStyle(
                           fontSize: 15, 
                           fontWeight: isRead ? FontWeight.w700 : FontWeight.w900, 
-                          color: const Color(0xFF1F6B4A)
+                          color: const Color(0xFF1BA6B1)
                         ),
                       ),
                     ),

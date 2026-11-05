@@ -1700,22 +1700,26 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                             children: [
                               Row(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: color.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      insight['category'] as String,
-                                      style: TextStyle(
-                                        color: color,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
+                                  Flexible(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: color.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        insight['category'] as String,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        style: TextStyle(
+                                          color: color,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                  const Spacer(),
+                                  const SizedBox(width: 8),
                                   Text(
                                     insight['readTime'] as String,
                                     style: const TextStyle(

@@ -6,11 +6,11 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import 'first_time_mobile_screen.dart';
 
-const _kPrimary      = Color(0xFF1F6B4A);
-const _kPrimaryLight = Color(0xFF26875B);
+const _kPrimary      = Color(0xFF1BA6B1);
+const _kPrimaryLight = Color(0xFF1596A1);
 const _kBg           = Color(0xFFF3EFE6);
 const _kSurface      = Color(0xFFFFFFFF);
-const _kTextDark     = Color(0xFF143B2A);
+const _kTextDark     = Color(0xFF0E4D54);
 const _kTextMuted    = Color(0xFF5A6E64);
 const _kBorder       = Color(0xFFDED8CB);
 

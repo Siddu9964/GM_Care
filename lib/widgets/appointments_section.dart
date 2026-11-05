@@ -69,10 +69,17 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body);
         if (json['data'] != null) {
-          final fetched = json['data'] as List;
+          final List fetched;
+          if (json['data'] is List) {
+            fetched = json['data'];
+          } else if (json['data'] is Map && json['data']['data'] is List) {
+            fetched = json['data']['data'];
+          } else {
+            fetched = [];
+          }
           
           final validAppointments = fetched.where((apt) {
-            final status = apt['appointment_status']?.toString() ?? '';
+            final status = (apt['appointment_status'] ?? apt['status'])?.toString() ?? '';
             return status != 'Cancelled' && status != 'Doctor On Leave' && status != 'Leave';
           }).toList();
           
@@ -82,14 +89,16 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
             return dateB.compareTo(dateA);
           });
           
+          final deduplicated = AppointmentsScreen.deduplicate(validAppointments);
+
           if (mounted) {
             setState(() {
-              _appointments = validAppointments;
+              _appointments = deduplicated;
               _isLoading = false;
             });
           }
           
-          for (var apt in validAppointments) {
+          for (var apt in deduplicated) {
             final dt = DateTime.tryParse('${apt['appointment_date']} ${apt['appointment_time']}');
             if (dt != null && dt.isAfter(DateTime.now())) {
               final id = int.tryParse(apt['appointment_id'].toString()) ?? apt.hashCode;
@@ -136,7 +145,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
           border: Border.all(color: const Color(0xFFDED8CB)),
         ),
         child: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF1F6B4A), strokeWidth: 2.5),
+          child: CircularProgressIndicator(color: Color(0xFF1BA6B1), strokeWidth: 2.5),
         ),
       );
     }
@@ -164,7 +173,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF143B2A),
+                        color: Color(0xFF0E4D54),
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -203,19 +212,19 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1F6B4A).withOpacity(0.08),
+                    color: const Color(0xFF1BA6B1).withOpacity(0.08),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2)),
+                    border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
                       Text(
                         "Schedule",
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1BA6B1)),
                       ),
                       SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF1F6B4A)),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF1BA6B1)),
                     ],
                   ),
                 ),
@@ -252,7 +261,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
         border: Border.all(color: const Color(0xFFDED8CB)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1F6B4A).withOpacity(0.04),
+            color: const Color(0xFF1BA6B1).withOpacity(0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           )
@@ -264,11 +273,11 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: const Color(0xFF1F6B4A).withOpacity(0.08),
+              color: const Color(0xFF1BA6B1).withOpacity(0.08),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.15)),
+              border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.15)),
             ),
-            child: const Icon(Icons.calendar_month_rounded, size: 26, color: Color(0xFF1F6B4A)),
+            child: const Icon(Icons.calendar_month_rounded, size: 26, color: Color(0xFF1BA6B1)),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -278,7 +287,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
               children: const [
                 Text(
                   "No Active OPD Bookings",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF143B2A)),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0E4D54)),
                 ),
                 SizedBox(height: 2),
                 Text(
@@ -307,7 +316,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
               ).then((_) => _fetchAppointments());
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1F6B4A),
+              backgroundColor: const Color(0xFF1BA6B1),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -318,6 +327,38 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
         ],
       ),
     );
+  }
+
+  String _getDoctorInitial(String rawName) {
+    String n = rawName.trim();
+    n = n.replaceFirst(RegExp(r'^(dr\.?|doctor|prof\.?)\s*', caseSensitive: false), '').trim();
+    if (n.isEmpty) {
+      n = rawName.replaceAll(RegExp(r'[^a-zA-Z]'), '').trim();
+    }
+    for (int i = 0; i < n.length; i++) {
+      final c = n[i];
+      if (RegExp(r'[a-zA-Z]').hasMatch(c)) {
+        return c.toUpperCase();
+      }
+    }
+    return 'D';
+  }
+
+  Color _getDoctorColor(String initial) {
+    const colors = [
+      Color(0xFF0E4D54), // Forest Emerald
+      Color(0xFF0F766E), // Clinical Teal
+      Color(0xFF1D4ED8), // Sapphire Blue
+      Color(0xFF6D28D9), // Deep Violet
+      Color(0xFFB45309), // Warm Amber
+      Color(0xFFBE123C), // Crimson Red
+      Color(0xFF4338CA), // Royal Indigo
+      Color(0xFF0E4D54), // Forest Emerald
+      Color(0xFF0E7490), // Ocean Cyan
+    ];
+    if (initial.isEmpty) return colors[0];
+    final code = initial.codeUnitAt(0);
+    return colors[code % colors.length];
   }
 
   Widget _buildOpdPassCard(dynamic apt, bool isTablet, bool isActive) {
@@ -353,12 +394,12 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: isExpired ? const Color(0xFFDED8CB) : const Color(0xFF1F6B4A).withOpacity(0.25),
+            color: isExpired ? const Color(0xFFDED8CB) : const Color(0xFF1BA6B1).withOpacity(0.25),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1F6B4A).withOpacity(0.06),
+              color: const Color(0xFF1BA6B1).withOpacity(0.06),
               blurRadius: 18,
               offset: const Offset(0, 6),
             ),
@@ -378,7 +419,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1F6B4A),
+                          color: const Color(0xFF1BA6B1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -391,11 +432,11 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                                   width: 5.5,
                                   height: 5.5,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF6EE7B7),
+                                    color: const Color(0xFF4DD0E1),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF6EE7B7).withValues(alpha: 0.6 * _pulseAnimation.value),
+                                        color: const Color(0xFF4DD0E1).withValues(alpha: 0.6 * _pulseAnimation.value),
                                         blurRadius: 4 * _pulseAnimation.value,
                                         spreadRadius: 1.5 * _pulseAnimation.value,
                                       ),
@@ -422,10 +463,10 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: isExpired ? Colors.grey.shade100 : const Color(0xFF26875B).withValues(alpha: 0.1),
+                            color: isExpired ? Colors.grey.shade100 : const Color(0xFF1596A1).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: isExpired ? Colors.grey.shade300 : const Color(0xFF26875B).withValues(alpha: 0.3),
+                              color: isExpired ? Colors.grey.shade300 : const Color(0xFF1596A1).withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -435,7 +476,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
-                              color: isExpired ? Colors.grey.shade600 : const Color(0xFF1F6B4A),
+                              color: isExpired ? Colors.grey.shade600 : const Color(0xFF1BA6B1),
                             ),
                           ),
                         ),
@@ -465,17 +506,45 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
             // Doctor details
             Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1F6B4A).withOpacity(0.08),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2)),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.person_rounded, color: Color(0xFF1F6B4A), size: 24),
-                  ),
+                Builder(
+                  builder: (context) {
+                    final docInitial = _getDoctorInitial(docName);
+                    final avatarColor = _getDoctorColor(docInitial);
+                    return Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            avatarColor,
+                            Color.lerp(avatarColor, const Color(0xFF082D31), 0.35)!,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: avatarColor.withValues(alpha: 0.25),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Center(
+                        child: Text(
+                          docInitial,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -487,7 +556,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF143B2A),
+                          color: Color(0xFF0E4D54),
                           letterSpacing: -0.3,
                         ),
                         maxLines: 1,
@@ -499,7 +568,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                         style: const TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF26875B),
+                          color: Color(0xFF1596A1),
                           letterSpacing: 0.3,
                         ),
                         maxLines: 1,
@@ -522,38 +591,35 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
               child: Row(
                 children: [
                   Expanded(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.event_available_rounded, size: 13, color: Color(0xFF1F6B4A)),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.event_available_rounded, size: 13, color: Color(0xFF1BA6B1)),
+                          const SizedBox(width: 4),
+                          Text(
                             dayFormatted,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF143B2A),
+                              color: Color(0xFF0E4D54),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF5A6E64)),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
+                          const SizedBox(width: 6),
+                          const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF5A6E64)),
+                          const SizedBox(width: 3),
+                          Text(
                             timeStr,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF1F6B4A),
+                              color: Color(0xFF1BA6B1),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -577,7 +643,7 @@ class _AppointmentsSectionState extends State<AppointmentsSection> with SingleTi
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1F6B4A),
+                        color: const Color(0xFF1BA6B1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
