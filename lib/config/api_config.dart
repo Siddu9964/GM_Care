@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 // =============================================================================
 // GM CARE — API REFERENCE DOCUMENTATION
 // =============================================================================
@@ -112,7 +113,7 @@ class ApiConfig {
   // ── Base URLs ─────────────────────────────────────────────────────────────
   // static const String baseUrl      = 'http://172.21.2.146/GM_HMS/api';
   static const String baseUrl      = 'https://erp.gmhospitals.co.in/GM_HMS/api';
-  static const String imageBaseUrl = '$scheme://$serverIp';
+  static const String imageBaseUrl = 'https://erp.gmhospitals.co.in';
 
   // ── Auth endpoints ────────────────────────────────────────────────────────
   /// POST — /auth/login/
@@ -149,6 +150,11 @@ class ApiConfig {
   /// GET — /billing/opd/{bill_id}
   static const String opdBilling    = '$baseUrl/billing/opd';
 
+  // ── Prescriptions endpoints ───────────────────────────────────────────────
+  /// GET — /prescriptions/patient/{patient_id}
+  static String patientPrescriptions(String patientId) =>
+      '$baseUrl/prescriptions/patient/$patientId';
+
   // ── Consultations endpoints ───────────────────────────────────────────────
   /// GET — /consultations?patient_id=<pid>
   static const String consultations = '$baseUrl/consultations';
@@ -169,4 +175,52 @@ class ApiConfig {
   /// GET  — /notifications?doctor_id=<id>
   /// POST — /notifications/mark-read
   static const String notifications = '$baseUrl/notifications';
+}
+
+/// Official Hospital Contacts & Branch Helplines
+class HospitalContact {
+  HospitalContact._();
+
+  static const String website = 'www.gmhospitals.com';
+
+  // Nagarabhavi Branch
+  static const String nagarabhaviName = 'GM Hospitals, Nagarabhavi';
+  static const String nagarabhaviAddress = '611 & 612, Nagarabhavi Main Road, Bengaluru - 560072';
+  static const String nagarabhaviLandline = '080 2301 1600';
+  static const String nagarabhaviMobile = '+91 99000 35235';
+  static const String nagarabhaviDisplay = '080 2301 1600, +91 99000 35235';
+
+  // Basaveshwaranagar Branch
+  static const String basaveshwaranagarName = 'GM Hospitals, Basaveshwaranagar';
+  static const String basaveshwaranagarAddress = '#335, 8th Main, 3rd Stage, 4th Block, Basaveshwaranagar, Bengaluru - 560079';
+  static const String basaveshwaranagarLandline = '080 2221 1600';
+  static const String basaveshwaranagarMobile = '+91 99000 03527';
+  static const String basaveshwaranagarDisplay = '080 2221 1600, +91 99000 03527';
+
+  // National Ambulance / Emergency
+  static const String nationalAmbulance = '108 / 112 (Toll Free)';
+
+  /// Opens official website in default browser via Android intent
+  static Future<void> openWebsite([String url = 'https://gmhospitals.com/']) async {
+    try {
+      const channel = MethodChannel('com.gmcare.hospital/calendar');
+      await channel.invokeMethod('openUrl', {'url': url});
+    } catch (_) {
+      try {
+        await Clipboard.setData(ClipboardData(text: url));
+      } catch (_) {}
+    }
+  }
+
+  /// Opens dialer with phone number prefilled
+  static Future<void> callPhone(String phone) async {
+    try {
+      const channel = MethodChannel('com.gmcare.hospital/calendar');
+      await channel.invokeMethod('openDialer', {'phone': phone});
+    } catch (_) {
+      try {
+        await Clipboard.setData(ClipboardData(text: phone));
+      } catch (_) {}
+    }
+  }
 }

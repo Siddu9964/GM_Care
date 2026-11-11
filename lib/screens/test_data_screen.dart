@@ -142,7 +142,7 @@ class _TestDataScreenState extends State<TestDataScreen> {
                           BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
                         ],
                       ),
-                      child: const Icon(Icons.arrow_back, color: Color(0xFF1F6B4A), size: 20),
+                      child: const Icon(Icons.arrow_back, color: Color(0xFF1BA6B1), size: 20),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -152,12 +152,12 @@ class _TestDataScreenState extends State<TestDataScreen> {
                       children: [
                         const Text(
                           "Test Data",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), letterSpacing: -0.5),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           "YOUR LAB RESULTS",
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.5), letterSpacing: 1.0),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.5), letterSpacing: 1.0),
                         ),
                       ],
                     ),
@@ -171,7 +171,7 @@ class _TestDataScreenState extends State<TestDataScreen> {
             // Content
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)))
                   : _errorMsg.isNotEmpty
                       ? Center(child: Padding(
                           padding: const EdgeInsets.all(24.0),
@@ -221,12 +221,12 @@ class _TestDataScreenState extends State<TestDataScreen> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1F6B4A).withOpacity(0.06), 
+            color: const Color(0xFF1BA6B1).withOpacity(0.06), 
             blurRadius: 24, 
             offset: const Offset(0, 12),
           ),
         ],
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.05)),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,7 +235,7 @@ class _TestDataScreenState extends State<TestDataScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
             decoration: BoxDecoration(
-              color: const Color(0xFF1F6B4A).withOpacity(0.04),
+              color: const Color(0xFF1BA6B1).withOpacity(0.04),
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(28), topRight: Radius.circular(28)),
             ),
             child: Row(
@@ -249,15 +249,15 @@ class _TestDataScreenState extends State<TestDataScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
+                          boxShadow: [BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
                         ),
-                        child: const Icon(Icons.science_rounded, color: Color(0xFF1F6B4A), size: 20),
+                        child: const Icon(Icons.science_rounded, color: Color(0xFF1BA6B1), size: 20),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Text(
                           testName,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1BA6B1)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -272,7 +272,7 @@ class _TestDataScreenState extends State<TestDataScreen> {
                   ),
                   child: Text(
                     dateStr,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF1F6B4A).withOpacity(0.6)),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF1BA6B1).withOpacity(0.6)),
                   ),
                 ),
               ],
@@ -295,7 +295,7 @@ class _TestDataScreenState extends State<TestDataScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE8F1ED)),
+        border: Border.all(color: const Color(0xFFE3F5F7)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -307,8 +307,8 @@ class _TestDataScreenState extends State<TestDataScreen> {
             3: FlexColumnWidth(2.5),
           },
           border: TableBorder(
-            horizontalInside: BorderSide(color: const Color(0xFFE8F1ED), width: 1),
-            verticalInside: BorderSide(color: const Color(0xFFE8F1ED), width: 1),
+            horizontalInside: BorderSide(color: const Color(0xFFE3F5F7), width: 1),
+            verticalInside: BorderSide(color: const Color(0xFFE3F5F7), width: 1),
           ),
           children: [
             // Table Header
@@ -376,7 +376,7 @@ class _TestDataScreenState extends State<TestDataScreen> {
         style: TextStyle(
           fontSize: isHeader ? 12 : 13,
           fontWeight: isHeader ? FontWeight.w800 : (isBold ? FontWeight.w700 : FontWeight.w500),
-          color: textColor ?? (isHeader ? const Color(0xFF1F6B4A) : const Color(0xFF4B5563)),
+          color: textColor ?? (isHeader ? const Color(0xFF1BA6B1) : const Color(0xFF4B5563)),
         ),
       ),
     );
@@ -417,19 +417,19 @@ class _TestDataScreenState extends State<TestDataScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+              boxShadow: [BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
             ),
-            child: Icon(Icons.science_outlined, size: 64, color: const Color(0xFF1F6B4A).withOpacity(0.3)),
+            child: Icon(Icons.science_outlined, size: 64, color: const Color(0xFF1BA6B1).withOpacity(0.3)),
           ),
           const SizedBox(height: 24),
           const Text(
             "No test data found",
-            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
             "Your lab results will appear here.",
-            style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1F6B4A).withOpacity(0.6), fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1BA6B1).withOpacity(0.6), fontSize: 14),
           ),
         ],
       ),

@@ -157,7 +157,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                           BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
                         ],
                       ),
-                      child: const Icon(Icons.arrow_back, color: Color(0xFF1F6B4A), size: 20),
+                      child: const Icon(Icons.arrow_back, color: Color(0xFF1BA6B1), size: 20),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -167,12 +167,12 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                       children: [
                         const Text(
                           "Billing & Invoices",
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), letterSpacing: -0.5),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           "YOUR PAYMENT HISTORY",
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.5), letterSpacing: 1.0),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.5), letterSpacing: 1.0),
                         ),
                       ],
                     ),
@@ -186,7 +186,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
             // 2. Billing List
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)))
                   : _errorMsg.isNotEmpty
                       ? Center(child: Text(_errorMsg, style: const TextStyle(color: Colors.red)))
                       : _bills.isEmpty
@@ -220,19 +220,19 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+              boxShadow: [BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
             ),
-            child: Icon(Icons.receipt_long_rounded, size: 64, color: const Color(0xFF1F6B4A).withOpacity(0.3)),
+            child: Icon(Icons.receipt_long_rounded, size: 64, color: const Color(0xFF1BA6B1).withOpacity(0.3)),
           ),
           const SizedBox(height: 24),
           const Text(
             "No billing history found",
-            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), fontSize: 18),
+            style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
             "Your invoices will appear here once generated.",
-            style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1F6B4A).withOpacity(0.6), fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1BA6B1).withOpacity(0.6), fontSize: 14),
           ),
         ],
       ),
@@ -324,9 +324,9 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isPaid ? const Color(0xFF1F6B4A).withValues(alpha: 0.08) : const Color(0xFFEBE6DC),
+                      color: isPaid ? const Color(0xFF1BA6B1).withValues(alpha: 0.08) : const Color(0xFFEBE6DC),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isPaid ? const Color(0xFF1F6B4A).withValues(alpha: 0.2) : const Color(0xFFDED8CB)),
+                      border: Border.all(color: isPaid ? const Color(0xFF1BA6B1).withValues(alpha: 0.2) : const Color(0xFFDED8CB)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -335,7 +335,7 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: isPaid ? const Color(0xFF1F6B4A) : const Color(0xFF5A6E64),
+                            color: isPaid ? const Color(0xFF1BA6B1) : const Color(0xFF5A6E64),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -346,7 +346,7 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
-                            color: isPaid ? const Color(0xFF1F6B4A) : const Color(0xFF5A6E64),
+                            color: isPaid ? const Color(0xFF1BA6B1) : const Color(0xFF5A6E64),
                           ),
                         ),
                       ],
@@ -354,7 +354,7 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                   ),
                   Text(
                     dateStr,
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.4)),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.4)),
                   ),
                 ],
               ),
@@ -363,14 +363,14 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
               // Middle Row: Title
               Text(
                 doctorName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), letterSpacing: -0.5),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 "Outpatient Consultation",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF1F6B4A).withOpacity(0.5)),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: const Color(0xFF1BA6B1).withOpacity(0.5)),
               ),
               const SizedBox(height: 24),
               
@@ -384,12 +384,12 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                     children: [
                       Text(
                         "Total Amount",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.5), letterSpacing: 0.5),
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.5), letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         "₹$amount",
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 26, color: Color(0xFF1F6B4A), letterSpacing: -1.0),
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 26, color: Color(0xFF1BA6B1), letterSpacing: -1.0),
                       ),
                     ],
                   ),
@@ -402,9 +402,9 @@ class _AnimatedBillCardState extends State<_AnimatedBillCard> with SingleTickerP
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Text("View Receipt", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A))),
+                        Text("View Receipt", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1BA6B1))),
                         SizedBox(width: 4),
-                        Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF1F6B4A)),
+                        Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF1BA6B1)),
                       ],
                     ),
                   ),

@@ -8,9 +8,9 @@ import 'patient_dashboard.dart';
 // ─────────────────────────────────────────────────────────────
 //  Constants
 // ─────────────────────────────────────────────────────────────
-const _kGreen      = Color(0xFF1F6B4A);
+const _kGreen      = Color(0xFF1BA6B1);
 const _kGreenDark  = Color(0xFF174E36);
-const _kGreenLight = Color(0xFF26875B);
+const _kGreenLight = Color(0xFF1596A1);
 const _kBg         = Color(0xFFF3EFE6);
 const _kBgLight    = Color(0xFFF8F6F1);
 

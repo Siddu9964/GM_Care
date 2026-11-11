@@ -8,11 +8,11 @@ import '../config/api_config.dart';
 import 'patient_dashboard.dart';
 import 'create_account_screen.dart';
 
-const _kPrimary      = Color(0xFF1F6B4A);
-const _kPrimaryLight = Color(0xFF26875B);
+const _kPrimary      = Color(0xFF1BA6B1);
+const _kPrimaryLight = Color(0xFF1596A1);
 const _kBg           = Color(0xFFF3EFE6);
 const _kSurface      = Color(0xFFFFFFFF);
-const _kTextDark     = Color(0xFF143B2A);
+const _kTextDark     = Color(0xFF0E4D54);
 const _kTextMuted    = Color(0xFF5A6E64);
 const _kBorder       = Color(0xFFDED8CB);
 
@@ -101,15 +101,47 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
   Future<void> _checkExistingSession() async {
     final prefs     = await SharedPreferences.getInstance();
     final cookie    = prefs.getString('session_cookie')     ?? '';
-    final patientId = prefs.getString('session_patient_id') ?? '';
+    String patientId = prefs.getString('session_patient_id') ?? '';
+    final phone     = prefs.getString('session_phone')      ?? '';
     final name      = prefs.getString('session_name')       ?? '';
     final branch    = prefs.getString('session_branch')     ?? 'Nagarabhavi';
     final age       = prefs.getString('session_age')        ?? '--';
     final sex       = prefs.getString('session_sex')        ?? 'Unknown';
-    if (cookie.isNotEmpty && patientId.isNotEmpty && mounted) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => PatientDashboard(userName: name, location: branch, cookie: cookie, patientId: patientId, age: age, sex: sex),
-      ));
+
+    if (cookie.isNotEmpty && (patientId.isNotEmpty || phone.isNotEmpty) && mounted) {
+      if ((patientId.isEmpty || patientId == '--' || patientId == '1') && phone.isNotEmpty) {
+        try {
+          final sRes = await http.get(
+            Uri.parse(ApiConfig.patientSearch(phone)),
+            headers: {'X-Hospital-Branch': branch, 'Accept': 'application/json'},
+          ).timeout(const Duration(seconds: 4));
+          if (sRes.statusCode == 200) {
+            final sData = jsonDecode(sRes.body);
+            dynamic pList = sData['data'];
+            if (pList is Map && pList.containsKey('data')) pList = pList['data'];
+            if (pList is List && pList.isNotEmpty) {
+              for (var p in pList) {
+                final pPhone = (p['phone']?.toString() ?? '').replaceAll(RegExp(r'\D'), '');
+                if (pPhone == phone || pPhone.endsWith(phone) || phone.endsWith(pPhone)) {
+                  patientId = (p['patient_id'] ?? p['id'] ?? '').toString().trim();
+                  if (patientId.isNotEmpty) break;
+                }
+              }
+              if (patientId.isEmpty) {
+                patientId = (pList.first['patient_id'] ?? pList.first['id'] ?? '').toString().trim();
+              }
+              if (patientId.isNotEmpty) {
+                await prefs.setString('session_patient_id', patientId);
+              }
+            }
+          }
+        } catch (_) {}
+      }
+      if (mounted) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+          builder: (_) => PatientDashboard(userName: name, location: branch, cookie: cookie, patientId: patientId, age: age, sex: sex),
+        ));
+      }
     }
   }
 
@@ -195,12 +227,43 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
       final name      = userData['first_name']?.toString() ?? '${_foundPatient?['first_name'] ?? ''}'.trim();
       final age       = userData['age']?.toString() ?? '--';
       final sex       = userData['sex']?.toString() ?? 'Unknown';
-      final patientId = userData['patient_id']?.toString() ?? _foundPatient?['patient_id']?.toString() ?? '';
+      String patientId = (userData['patient_id'] ?? userData['id'] ?? userData['uhid'] ?? userData['patientId'] ?? _foundPatient?['patient_id'] ?? _foundPatient?['id'] ?? '').toString().trim();
+
+      if (patientId.isEmpty || patientId == '1' || patientId == '--') {
+        try {
+          final sRes = await http.get(
+            Uri.parse(ApiConfig.patientSearch(cleanPhone)),
+            headers: {'X-Hospital-Branch': activeBranch, 'Accept': 'application/json'},
+          ).timeout(const Duration(seconds: 5));
+          if (sRes.statusCode == 200) {
+            final sData = jsonDecode(sRes.body);
+            dynamic pList = sData['data'];
+            if (pList is Map && pList.containsKey('data')) pList = pList['data'];
+            if (pList is List && pList.isNotEmpty) {
+              for (var p in pList) {
+                final pPhone = (p['phone']?.toString() ?? '').replaceAll(RegExp(r'\D'), '');
+                if (pPhone == cleanPhone || pPhone.endsWith(cleanPhone) || cleanPhone.endsWith(pPhone)) {
+                  final pid = (p['patient_id'] ?? p['id'] ?? '').toString().trim();
+                  if (pid.isNotEmpty) { patientId = pid; break; }
+                }
+              }
+              if (patientId.isEmpty) {
+                patientId = (pList.first['patient_id'] ?? pList.first['id'] ?? '').toString().trim();
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
       final rawCookie = (successRes.headers['set-cookie'] ?? '').split(';')[0];
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('session_cookie', rawCookie);    await prefs.setString('session_name', name);
-      await prefs.setString('session_branch', activeBranch); await prefs.setString('session_patient_id', patientId);
-      await prefs.setString('session_age', age);             await prefs.setString('session_sex', sex);
+      await prefs.setString('session_cookie', rawCookie);
+      await prefs.setString('session_phone', cleanPhone);
+      await prefs.setString('session_name', name);
+      await prefs.setString('session_branch', activeBranch);
+      await prefs.setString('session_patient_id', patientId);
+      await prefs.setString('session_age', age);
+      await prefs.setString('session_sex', sex);
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => PatientDashboard(userName: name, location: activeBranch, cookie: rawCookie, age: age, sex: sex, patientId: patientId)), (route) => false);
     } catch (_) {
@@ -230,12 +293,43 @@ class _FirstTimeMobileScreenState extends State<FirstTimeMobileScreen>
         final name      = userData['first_name']?.toString() ?? '${_foundPatient?['first_name'] ?? ''}'.trim();
         final age       = userData['age']?.toString() ?? '--';
         final sex       = userData['sex']?.toString() ?? 'Unknown';
-        final patientId = userData['patient_id']?.toString() ?? _foundPatient?['patient_id']?.toString() ?? '';
+        String patientId = (userData['patient_id'] ?? userData['id'] ?? userData['uhid'] ?? userData['patientId'] ?? _foundPatient?['patient_id'] ?? _foundPatient?['id'] ?? '').toString().trim();
+
+        if (patientId.isEmpty || patientId == '1' || patientId == '--') {
+          try {
+            final sRes = await http.get(
+              Uri.parse(ApiConfig.patientSearch(cleanPhone)),
+              headers: {'X-Hospital-Branch': _foundBranch, 'Accept': 'application/json'},
+            ).timeout(const Duration(seconds: 5));
+            if (sRes.statusCode == 200) {
+              final sData = jsonDecode(sRes.body);
+              dynamic pList = sData['data'];
+              if (pList is Map && pList.containsKey('data')) pList = pList['data'];
+              if (pList is List && pList.isNotEmpty) {
+                for (var p in pList) {
+                  final pPhone = (p['phone']?.toString() ?? '').replaceAll(RegExp(r'\D'), '');
+                  if (pPhone == cleanPhone || pPhone.endsWith(cleanPhone) || cleanPhone.endsWith(pPhone)) {
+                    final pid = (p['patient_id'] ?? p['id'] ?? '').toString().trim();
+                    if (pid.isNotEmpty) { patientId = pid; break; }
+                  }
+                }
+                if (patientId.isEmpty) {
+                  patientId = (pList.first['patient_id'] ?? pList.first['id'] ?? '').toString().trim();
+                }
+              }
+            }
+          } catch (_) {}
+        }
+
         final rawCookie = (loginRes.headers['set-cookie'] ?? '').split(';')[0];
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('session_cookie', rawCookie);   await prefs.setString('session_name', name);
-        await prefs.setString('session_branch', _foundBranch); await prefs.setString('session_patient_id', patientId);
-        await prefs.setString('session_age', age);            await prefs.setString('session_sex', sex);
+        await prefs.setString('session_cookie', rawCookie);
+        await prefs.setString('session_phone', cleanPhone);
+        await prefs.setString('session_name', name);
+        await prefs.setString('session_branch', _foundBranch);
+        await prefs.setString('session_patient_id', patientId);
+        await prefs.setString('session_age', age);
+        await prefs.setString('session_sex', sex);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Password created! Welcome to GM Care, $name 🎉', style: GoogleFonts.inter(fontWeight: FontWeight.w600)), backgroundColor: _kPrimary, behavior: SnackBarBehavior.floating, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), margin: const EdgeInsets.all(16)));
         await Future.delayed(const Duration(milliseconds: 700));

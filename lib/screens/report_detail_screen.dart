@@ -99,7 +99,7 @@ class ReportDetailScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1F6B4A)),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1BA6B1)),
           onPressed: () {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
@@ -109,7 +109,7 @@ class ReportDetailScreen extends StatelessWidget {
         title: const Text(
           "Consultation Report",
           style: TextStyle(
-            color: Color(0xFF1F6B4A),
+            color: Color(0xFF1BA6B1),
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
             fontSize: 18,
@@ -176,10 +176,10 @@ class ReportDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: const Color(0xFF1F6B4A).withOpacity(0.1),
+            color: const Color(0xFF1BA6B1).withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: const Color(0xFF1F6B4A)),
+          child: Icon(icon, size: 16, color: const Color(0xFF1BA6B1)),
         ),
         const SizedBox(width: 12),
         Text(
@@ -187,7 +187,7 @@ class ReportDetailScreen extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w900,
-            color: Color(0xFF1F6B4A),
+            color: Color(0xFF1BA6B1),
             letterSpacing: 1.2,
           ),
         ),
@@ -201,10 +201,10 @@ class ReportDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1.5),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.1), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1F6B4A).withOpacity(0.06),
+            color: const Color(0xFF1BA6B1).withOpacity(0.06),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -224,20 +224,20 @@ class ReportDetailScreen extends StatelessWidget {
                 ),
                 child: Text(
                   "ID: $consultId",
-                  style: const TextStyle(color: Color(0xFF1F6B4A), fontSize: 11, fontWeight: FontWeight.w800),
+                  style: const TextStyle(color: Color(0xFF1BA6B1), fontSize: 11, fontWeight: FontWeight.w800),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F6B4A).withOpacity(0.1),
+                  color: const Color(0xFF1BA6B1).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.verified_rounded, color: Color(0xFF1F6B4A), size: 14),
+                    Icon(Icons.verified_rounded, color: Color(0xFF1BA6B1), size: 14),
                     SizedBox(width: 4),
-                    Text("Verified", style: TextStyle(color: Color(0xFF1F6B4A), fontSize: 10, fontWeight: FontWeight.w900)),
+                    Text("Verified", style: TextStyle(color: Color(0xFF1BA6B1), fontSize: 10, fontWeight: FontWeight.w900)),
                   ],
                 ),
               ),
@@ -253,9 +253,9 @@ class ReportDetailScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFF3EFE6),
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.15)),
+                  border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.15)),
                 ),
-                child: const Center(child: Icon(Icons.person_outline_rounded, color: Color(0xFF1F6B4A), size: 28)),
+                child: const Center(child: Icon(Icons.person_outline_rounded, color: Color(0xFF1BA6B1), size: 28)),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -264,12 +264,12 @@ class ReportDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       doctorName.toLowerCase().startsWith("dr") ? doctorName : "Dr. $doctorName",
-                      style: const TextStyle(color: Color(0xFF1F6B4A), fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5, height: 1.2),
+                      style: const TextStyle(color: Color(0xFF1BA6B1), fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: -0.5, height: 1.2),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       "Consultation completed",
-                      style: TextStyle(color: const Color(0xFF1F6B4A).withOpacity(0.6), fontSize: 13, fontWeight: FontWeight.w700),
+                      style: TextStyle(color: const Color(0xFF1BA6B1).withOpacity(0.6), fontSize: 13, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
@@ -289,21 +289,21 @@ class ReportDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("PATIENT", style: TextStyle(color: const Color(0xFF1F6B4A).withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                      Text("PATIENT", style: TextStyle(color: const Color(0xFF1BA6B1).withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                       const SizedBox(height: 4),
-                      Text(patientId, style: const TextStyle(color: Color(0xFF1F6B4A), fontSize: 14, fontWeight: FontWeight.w900)),
+                      Text(patientId, style: const TextStyle(color: Color(0xFF1BA6B1), fontSize: 14, fontWeight: FontWeight.w900)),
                     ],
                   ),
                 ),
-                Container(width: 1, height: 32, color: const Color(0xFF1F6B4A).withOpacity(0.15)),
+                Container(width: 1, height: 32, color: const Color(0xFF1BA6B1).withOpacity(0.15)),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("DATE & TIME", style: TextStyle(color: const Color(0xFF1F6B4A).withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                      Text("DATE & TIME", style: TextStyle(color: const Color(0xFF1BA6B1).withOpacity(0.7), fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                       const SizedBox(height: 4),
-                      Text(dateTime, style: const TextStyle(color: Color(0xFF1F6B4A), fontSize: 14, fontWeight: FontWeight.w900)),
+                      Text(dateTime, style: const TextStyle(color: Color(0xFF1BA6B1), fontSize: 14, fontWeight: FontWeight.w900)),
                     ],
                   ),
                 ),
@@ -322,9 +322,9 @@ class ReportDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1.5),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.1), width: 1.5),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
+          BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
         ],
       ),
       child: ClipRRect(
@@ -342,7 +342,7 @@ class ReportDetailScreen extends StatelessWidget {
                 children: [
                   _buildVitalRibbonItem(mapEntry.key, mapEntry.value.toString()),
                   if (!isLast)
-                    Container(width: 1, height: 50, color: const Color(0xFF1F6B4A).withOpacity(0.1)),
+                    Container(width: 1, height: 50, color: const Color(0xFF1BA6B1).withOpacity(0.1)),
                 ],
               );
             }).toList(),
@@ -375,18 +375,18 @@ class ReportDetailScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF1F6B4A).withOpacity(0.6), size: 16),
+              Icon(icon, color: const Color(0xFF1BA6B1).withOpacity(0.6), size: 16),
               const SizedBox(width: 8),
               Text(
                 label.toUpperCase(),
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.6), letterSpacing: 0.5),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.6), letterSpacing: 0.5),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A), letterSpacing: -0.5),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1), letterSpacing: -0.5),
           ),
         ],
       ),
@@ -400,9 +400,9 @@ class ReportDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1.5),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.1), width: 1.5),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
+          BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -411,20 +411,20 @@ class ReportDetailScreen extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              border: isLast ? null : Border(bottom: BorderSide(color: const Color(0xFF1F6B4A).withOpacity(0.05))),
+              border: isLast ? null : Border(bottom: BorderSide(color: const Color(0xFF1BA6B1).withOpacity(0.05))),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   margin: const EdgeInsets.only(top: 2),
-                  child: const Icon(Icons.check_circle_rounded, color: Color(0xFF1F6B4A), size: 18),
+                  child: const Icon(Icons.check_circle_rounded, color: Color(0xFF1BA6B1), size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     findings[index].trim(),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A), height: 1.4),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1BA6B1), height: 1.4),
                   ),
                 ),
               ],
@@ -440,9 +440,9 @@ class ReportDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1.5),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.1), width: 1.5),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
+          BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -452,7 +452,7 @@ class ReportDetailScreen extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              border: isLast ? null : Border(bottom: BorderSide(color: const Color(0xFF1F6B4A).withOpacity(0.05))),
+              border: isLast ? null : Border(bottom: BorderSide(color: const Color(0xFF1BA6B1).withOpacity(0.05))),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,7 +466,7 @@ class ReportDetailScreen extends StatelessWidget {
                         color: const Color(0xFFF3EFE6),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.medication_outlined, color: Color(0xFF1F6B4A), size: 20),
+                      child: const Icon(Icons.medication_outlined, color: Color(0xFF1BA6B1), size: 20),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -475,7 +475,7 @@ class ReportDetailScreen extends StatelessWidget {
                         children: [
                           Text(
                             med['name']?.toString() ?? 'Unknown Medication',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A)),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1)),
                           ),
                           const SizedBox(height: 12),
                           Row(
@@ -504,7 +504,7 @@ class ReportDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFF1F6B4A).withOpacity(0.6), letterSpacing: 0.5)),
+        Text(label.toUpperCase(), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: const Color(0xFF1BA6B1).withOpacity(0.6), letterSpacing: 0.5)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -514,7 +514,7 @@ class ReportDetailScreen extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A)),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1BA6B1)),
           ),
         ),
       ],
@@ -528,9 +528,9 @@ class ReportDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1.5),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.1), width: 1.5),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
+          BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 6)),
         ],
       ),
       child: Column(
@@ -544,16 +544,16 @@ class ReportDetailScreen extends StatelessWidget {
                   color: const Color(0xFFF3EFE6),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.healing_rounded, color: Color(0xFF1F6B4A), size: 16),
+                child: const Icon(Icons.healing_rounded, color: Color(0xFF1BA6B1), size: 16),
               ),
               const SizedBox(width: 12),
-              const Text("Care Instructions", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A))),
+              const Text("Care Instructions", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1))),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             plan,
-            style: TextStyle(fontSize: 14, height: 1.6, color: const Color(0xFF1F6B4A).withOpacity(0.8), fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 14, height: 1.6, color: const Color(0xFF1BA6B1).withOpacity(0.8), fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -566,9 +566,9 @@ class ReportDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.1), width: 1.5),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.1), width: 1.5),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF1F6B4A).withOpacity(0.06), blurRadius: 24, offset: const Offset(0, 8))
+          BoxShadow(color: const Color(0xFF1BA6B1).withOpacity(0.06), blurRadius: 24, offset: const Offset(0, 8))
         ],
       ),
       child: ClipRRect(
@@ -583,7 +583,7 @@ class ReportDetailScreen extends StatelessWidget {
                 if (loadingProgress == null) return child;
                 return const SizedBox(
                   height: 200,
-                  child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1F6B4A))),
+                  child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1BA6B1))),
                 );
               },
               errorBuilder: (context, error, stackTrace) {
@@ -594,9 +594,9 @@ class ReportDetailScreen extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.broken_image_rounded, color: const Color(0xFF1F6B4A).withOpacity(0.4), size: 40),
+                      Icon(Icons.broken_image_rounded, color: const Color(0xFF1BA6B1).withOpacity(0.4), size: 40),
                       const SizedBox(height: 8),
-                      Text("Image unavailable", style: TextStyle(color: const Color(0xFF1F6B4A).withOpacity(0.6), fontWeight: FontWeight.w700)),
+                      Text("Image unavailable", style: TextStyle(color: const Color(0xFF1BA6B1).withOpacity(0.6), fontWeight: FontWeight.w700)),
                     ],
                   ),
                 );

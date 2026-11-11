@@ -108,7 +108,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
           children: [
             const Text(
               "Billing History",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A)),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1)),
             ),
             if (_bills.isNotEmpty)
               GestureDetector(
@@ -129,10 +129,10 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                   children: const [
                     Text(
                       "See All",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A)),
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1BA6B1)),
                     ),
                     SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1F6B4A)),
+                    Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Color(0xFF1BA6B1)),
                   ],
                 ),
               )
@@ -142,9 +142,9 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
         SizedBox(
           height: 140, 
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A)))
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1)))
               : _errorMsg.isNotEmpty
-                  ? Center(child: Text(_errorMsg, style: const TextStyle(color: Color(0xFF1F6B4A))))
+                  ? Center(child: Text(_errorMsg, style: const TextStyle(color: Color(0xFF1BA6B1))))
                   : ListView.separated(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
@@ -169,7 +169,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                               border: Border.all(color: const Color(0xFFDED8CB)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                                  color: const Color(0xFF1BA6B1).withValues(alpha: 0.04),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 )
@@ -185,7 +185,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                                     width: 70,
                                     height: 70,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                                      color: const Color(0xFF1BA6B1).withValues(alpha: 0.04),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -196,7 +196,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: isPaid ? const Color(0xFF1F6B4A).withValues(alpha: 0.1) : const Color(0xFFF3EFE6),
+                                        color: isPaid ? const Color(0xFF1BA6B1).withValues(alpha: 0.1) : const Color(0xFFF3EFE6),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
@@ -204,14 +204,14 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                                         style: const TextStyle(
                                           fontSize: 9,
                                           fontWeight: FontWeight.w800,
-                                          color: Color(0xFF1F6B4A),
+                                          color: Color(0xFF1BA6B1),
                                         ),
                                       ),
                                     ),
                                     const Spacer(),
                                     Text(
                                       "₹$amount",
-                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF143B2A)),
+                                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF0E4D54)),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -223,7 +223,7 @@ class _BillingHistorySectionState extends State<BillingHistorySection> {
                                     const SizedBox(height: 8),
                                     const Align(
                                       alignment: Alignment.bottomRight,
-                                      child: Icon(Icons.receipt_long_outlined, color: Color(0xFF1F6B4A), size: 18),
+                                      child: Icon(Icons.receipt_long_outlined, color: Color(0xFF1BA6B1), size: 18),
                                     ),
                                   ],
                                 ),

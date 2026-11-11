@@ -26,15 +26,16 @@ class NotificationService {
     // iOS initialization
     final DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
-      requestSoundPermission: true,
-      requestBadgePermission: true,
-      requestAlertPermission: true,
-    );
+          requestSoundPermission: true,
+          requestBadgePermission: true,
+          requestAlertPermission: true,
+        );
 
-    final InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-    );
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+        );
 
     await flutterLocalNotificationsPlugin.initialize(
       settings: initializationSettings,
@@ -67,15 +68,16 @@ class NotificationService {
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'gm_care_general',
-      'General Notifications',
-      channelDescription: 'General app notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+          'gm_care_general',
+          'General Notifications',
+          channelDescription: 'General app notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
 
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+    );
 
     await flutterLocalNotificationsPlugin.show(
       id: id,
@@ -98,7 +100,9 @@ class NotificationService {
     final now = DateTime.now();
 
     // 15 Minutes before
-    final fifteenMinsBefore = appointmentTime.subtract(const Duration(minutes: 15));
+    final fifteenMinsBefore = appointmentTime.subtract(
+      const Duration(minutes: 15),
+    );
     if (fifteenMinsBefore.isAfter(now)) {
       await _scheduleNotification(
         id: appointmentId * 10 + 1, // Unique ID
@@ -115,19 +119,19 @@ class NotificationService {
     required String body,
   }) async {
     if (!await _isPushNotificationsEnabled()) return;
-    
+
     final prefs = await SharedPreferences.getInstance();
     final billingEnabled = prefs.getBool('notifications_billing') ?? false;
     if (!billingEnabled) return;
 
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'gm_care_billing',
-      'Billing Alerts',
-      channelDescription: 'Notifications for new bills and payment updates',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+          'gm_care_billing',
+          'Billing Alerts',
+          channelDescription: 'Notifications for new bills and payment updates',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
 
     await flutterLocalNotificationsPlugin.show(
       id: DateTime.now().millisecond,
@@ -145,12 +149,12 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
-      'gm_care_appointments',
-      'Appointment Reminders',
-      channelDescription: 'Scheduled reminders for upcoming appointments',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+          'gm_care_appointments',
+          'Appointment Reminders',
+          channelDescription: 'Scheduled reminders for upcoming appointments',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
 
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id: id,
