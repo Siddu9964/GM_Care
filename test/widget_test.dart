@@ -4,6 +4,7 @@ import 'package:gm_care/screens/patient_dashboard.dart';
 import 'package:gm_care/screens/appointments_screen.dart';
 import 'package:gm_care/screens/account_screen.dart';
 import 'package:gm_care/screens/prescriptions_screen.dart';
+import 'package:gm_care/screens/specialist_doctors_screen.dart';
 import 'package:gm_care/widgets/hospital_charter_dialog.dart';
 import 'package:gm_care/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -166,5 +167,88 @@ void main() {
       PrescriptionsScreen.resolvePdfUrl(itemRad),
       'https://somatiq.ai/share/HNG5V4WDYG3T',
     );
+  });
+
+  test('Test SpecialistDoctorsScreen.formatDoctorName removes duplicate prefixes and normalizes cleanly', () {
+    expect(SpecialistDoctorsScreen.formatDoctorName('Dr. Dayananda Kumar K'), 'Dr. Dayananda Kumar K');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Dr Dayananda Kumar K'), 'Dr. Dayananda Kumar K');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Dr. Dr Pramod'), 'Dr. Pramod');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Dr. Dr. Dr Ramesh SS'), 'Dr. Ramesh SS');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Doctor Ramesh SS'), 'Dr. Ramesh SS');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Prof. Ramesh SS'), 'Dr. Ramesh SS');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Ramesh SS'), 'Dr. Ramesh SS');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Drishya'), 'Dr. Drishya');
+    expect(SpecialistDoctorsScreen.formatDoctorName('Dravid'), 'Dr. Dravid');
+    expect(SpecialistDoctorsScreen.formatDoctorName(''), 'Consultant');
+    expect(SpecialistDoctorsScreen.formatDoctorName(null), 'Consultant');
+  });
+
+  testWidgets('Test SpecialistDoctorsScreen renders with large system font scale without truncation', (tester) async {
+    final mockDoctors = [
+      {
+        'full_name': 'Dr Dayananda Kumar K',
+        'specialization': 'Gynecology',
+        'department': 'Gynecology',
+        'consultation_fee': '500.00',
+        'availability': 'Available',
+        'in_time': '12:00:00',
+        'out_time': '14:00:00',
+        'photo': '',
+      },
+      {
+        'full_name': 'Dr. Dr Pramod',
+        'specialization': 'Cardiology',
+        'department': 'Cardiology Department',
+        'consultation_fee': '700.00',
+        'availability': 'Off-Duty',
+        'in_time': '09:00:00',
+        'out_time': '17:00:00',
+        'photo': '',
+      },
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          // Simulate large letters setting on user's phone (1.6x font scale)
+          data: const MediaQueryData(
+            textScaler: TextScaler.linear(1.6),
+            size: Size(360, 800),
+          ),
+          child: SpecialistDoctorsScreen(
+            specialization: 'Gynecology',
+            doctors: mockDoctors,
+            userName: 'Test Patient',
+            location: 'Nagarabhavi',
+            age: '30',
+            sex: 'Female',
+            cookie: '',
+            patientId: 'PID-20261030-017',
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    // Verify doctor names are normalized and NOT truncated or duplicated
+    expect(find.text('Dr. Dayananda Kumar K'), findsOneWidget);
+    expect(find.text('Dr. Pramod'), findsOneWidget);
+    expect(find.textContaining('Dr. Dr'), findsNothing);
+
+    // Verify status pills
+    expect(find.text('ACTIVE TODAY'), findsOneWidget);
+    expect(find.text('OFF-DUTY'), findsOneWidget);
+
+    // Verify timing & fee
+    expect(find.text('12:00 PM - 02:00 PM'), findsOneWidget);
+    expect(find.text('OPD: ₹500.00'), findsOneWidget);
+
+    // Verify specialization is uppercase
+    expect(find.text('GYNECOLOGY'), findsOneWidget);
+
+    // Verify duplicate department is not rendered when identical to specialization
+    // ("Gynecology" title should not be rendered below "GYNECOLOGY")
+    expect(find.text('Gynecology'), findsWidgets); // only in category chips / title
+    expect(find.text('Cardiology Department'), findsNWidgets(2));
   });
 }
