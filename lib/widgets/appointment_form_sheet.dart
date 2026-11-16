@@ -882,13 +882,23 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
     return colors[code % colors.length];
   }
 
+  static String _cleanDoctorName(dynamic raw) {
+    if (raw == null) return 'Doctor';
+    String name = raw.toString().trim();
+    if (name.isEmpty) return 'Doctor';
+    final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+    while (prefixRegex.hasMatch(name)) {
+      name = name.replaceFirst(prefixRegex, '').trim();
+    }
+    return name.isEmpty ? 'Doctor' : 'Dr. $name';
+  }
+
   Widget _buildDoctorCard(int index) {
     final doc    = _doctors[index];
     final isSel  = _selectedDoctorIndex == index;
 
     // Fields from doctors table
-    String name   = doc['full_name'] ?? 'Unknown';
-    if (!name.toLowerCase().startsWith('dr')) name = 'Dr. $name';
+    final name    = _cleanDoctorName(doc['full_name']);
     final spec    = doc['specialization'] ?? 'Specialist';
     final days    = doc['available_days'] ?? '';
     final fee     = doc['consultation_fee'];
@@ -993,10 +1003,11 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(name,
-                            maxLines: 1,
+                            maxLines: 2,
+                            softWrap: true,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
-                              fontSize: 13, fontWeight: FontWeight.w700, color: _kText1,
+                              fontSize: 13, fontWeight: FontWeight.w700, color: _kText1, height: 1.2,
                             )),
                         Text(spec,
                             maxLines: 1,
@@ -1389,11 +1400,7 @@ class _AppointmentFormSheetState extends State<AppointmentFormSheet>
 
   Widget _buildSummaryCard() {
     final docName = (_selectedDoctorIndex >= 0 && _selectedDoctorIndex < _doctors.length)
-        ? () {
-            String n = _doctors[_selectedDoctorIndex]['full_name'] ?? 'Unknown';
-            if (!n.toLowerCase().startsWith('dr')) n = 'Dr. $n';
-            return n;
-          }()
+        ? _cleanDoctorName(_doctors[_selectedDoctorIndex]['full_name'])
         : 'Not selected';
 
     final dateStr =

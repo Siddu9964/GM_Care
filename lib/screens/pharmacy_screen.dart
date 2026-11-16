@@ -9,7 +9,7 @@ import 'patient_dashboard.dart';
 //  Constants
 // ─────────────────────────────────────────────────────────────
 const _kGreen      = Color(0xFF1BA6B1);
-const _kGreenDark  = Color(0xFF174E36);
+const _kGreenDark  = Color(0xFF0E4D54);
 const _kGreenLight = Color(0xFF1596A1);
 const _kBg         = Color(0xFFF3EFE6);
 const _kBgLight    = Color(0xFFF8F6F1);
@@ -17,6 +17,16 @@ const _kBgLight    = Color(0xFFF8F6F1);
 // ─────────────────────────────────────────────────────────────
 //  Helpers
 // ─────────────────────────────────────────────────────────────
+String _cleanDoctorName(dynamic raw) {
+  if (raw == null) return 'Doctor';
+  String name = raw.toString().trim();
+  if (name.isEmpty || name == '—') return 'Doctor';
+  final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+  while (prefixRegex.hasMatch(name)) {
+    name = name.replaceFirst(prefixRegex, '').trim();
+  }
+  return name.isEmpty ? 'Doctor' : 'Dr. $name';
+}
 String _fmtDate(String? raw, {bool long = false}) {
   if (raw == null || raw.isEmpty) return '—';
   try {
@@ -427,7 +437,7 @@ class _PharmacyScreenState extends State<PharmacyScreen>
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
-                                  doctorName.startsWith('Dr') ? doctorName : 'Dr. $doctorName',
+                                  _cleanDoctorName(doctorName),
                                   style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
@@ -784,7 +794,7 @@ class PrescriptionDetailScreen extends StatelessWidget {
                 ['PATIENT', name.isNotEmpty ? name.toUpperCase() : '—', false],
                 ['PATIENT ID', pid, true],
                 ['PHONE', phone, false],
-                ['DOCTOR', doctor.startsWith('Dr') ? doctor : 'Dr. $doctor', true],
+                ['DOCTOR', _cleanDoctorName(doctor), true],
               ];
 
               if (half) {

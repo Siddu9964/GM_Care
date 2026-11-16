@@ -14,6 +14,19 @@ class SpecialistDoctorsScreen extends StatefulWidget {
   final String cookie;
   final String patientId;
 
+  static String formatDoctorName(dynamic raw) {
+    if (raw == null) return 'Consultant';
+    String name = raw.toString().trim();
+    if (name.isEmpty) return 'Consultant';
+    
+    // Clean up any repeated prefixes like "Dr.", "Dr ", "Doctor ", "Prof. ", etc.
+    final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+    while (prefixRegex.hasMatch(name)) {
+      name = name.replaceFirst(prefixRegex, '').trim();
+    }
+    return name.isEmpty ? 'Consultant' : 'Dr. $name';
+  }
+
   const SpecialistDoctorsScreen({
     super.key,
     required this.specialization,
@@ -301,13 +314,23 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
     );
   }
 
-  Widget _buildDoctorCard(BuildContext context, dynamic doc) {
-    String name = doc['full_name'] ?? 'Consultant';
-    if (!name.toLowerCase().startsWith('dr.')) {
-      name = 'Dr. $name';
+  static String formatDoctorName(dynamic raw) {
+    if (raw == null) return 'Consultant';
+    String name = raw.toString().trim();
+    if (name.isEmpty) return 'Consultant';
+    
+    // Clean up any repeated prefixes like "Dr.", "Dr ", "Doctor ", "Prof. ", etc.
+    final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+    while (prefixRegex.hasMatch(name)) {
+      name = name.replaceFirst(prefixRegex, '').trim();
     }
-    final spec = doc['specialization'] ?? 'Super Specialist';
-    final department = doc['department'] ?? 'Department';
+    return name.isEmpty ? 'Consultant' : 'Dr. $name';
+  }
+
+  Widget _buildDoctorCard(BuildContext context, dynamic doc) {
+    final name = formatDoctorName(doc['full_name']);
+    final spec = (doc['specialization'] ?? 'Super Specialist').toString().trim();
+    final department = (doc['department'] ?? 'Department').toString().trim();
     final fee = doc['consultation_fee'] ?? '800';
     
     // Format timings safely
@@ -328,7 +351,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
          if (outH > 12) outH -= 12;
          if (outH == 0) outH = 12;
          
-         timings = '$inH:${inParts[1]} $inAmPm - $outH:${outParts[1]} $outAmPm';
+         timings = '${inH.toString().padLeft(2, '0')}:${inParts[1]} $inAmPm - ${outH.toString().padLeft(2, '0')}:${outParts[1]} $outAmPm';
        } catch (e) {
          timings = '$inTimeRaw - $outTimeRaw';
        }
@@ -339,7 +362,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
     
     String photoUrl = doc['photo'] != null && doc['photo'].toString().isNotEmpty
         ? ApiConfig.imageBaseUrl + doc['photo']
-        : "https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=1F6B4A&color=F3EFE6&bold=true";
+        : "https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=0E4D54&color=FFFFFF&bold=true";
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -366,15 +389,37 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
               // Avatar with Online Badge
               Stack(
                 children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2), width: 1.5),
-                      image: DecorationImage(
-                        image: NetworkImage(photoUrl),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0E4D54),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2), width: 1.5),
+                      ),
+                      child: Image.network(
+                        photoUrl,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          String cleanInitials = name.replaceFirst(RegExp(r'^Dr\.?\s*', caseSensitive: false), '').trim();
+                          String initials = cleanInitials.isNotEmpty
+                              ? cleanInitials.split(' ').where((e) => e.isNotEmpty).map((e) => e[0]).take(2).join()
+                              : 'DR';
+                          return Container(
+                            color: const Color(0xFF0E4D54),
+                            alignment: Alignment.center,
+                            child: Text(
+                              initials.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -402,6 +447,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Text(
@@ -411,15 +457,17 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                               fontWeight: FontWeight.w900,
                               color: Color(0xFF0E4D54),
                               letterSpacing: -0.3,
+                              height: 1.25,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            softWrap: true,
+                            maxLines: 3,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
-                            color: isAvailable ? const Color(0xFF1596A1).withOpacity(0.1) : Colors.grey.shade100,
+                            color: isAvailable ? const Color(0xFF1596A1).withOpacity(0.12) : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -433,7 +481,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     Text(
                       spec.toUpperCase(),
                       style: const TextStyle(
@@ -441,21 +489,25 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1596A1),
                         letterSpacing: 0.4,
+                        height: 1.2,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
+                      maxLines: 2,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      department,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF5A6E64),
+                    if (department.isNotEmpty && department.toLowerCase() != spec.toLowerCase()) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        department,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF5A6E64),
+                          height: 1.2,
+                        ),
+                        softWrap: true,
+                        maxLines: 2,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -472,28 +524,31 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
               border: Border.all(color: const Color(0xFFDED8CB).withOpacity(0.6)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF1BA6B1)),
+                const SizedBox(width: 6),
                 Expanded(
-                  child: Row(
-                    children: [
-                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF1BA6B1)),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          timings,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0E4D54)),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    timings,
+                    softWrap: true,
+                    maxLines: 2,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0E4D54),
+                      height: 1.2,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   "OPD: ₹$fee",
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF1BA6B1)),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1BA6B1),
+                  ),
                 ),
               ],
             ),
@@ -528,7 +583,7 @@ class _SpecialistDoctorsScreenState extends State<SpecialistDoctorsScreen> {
                             cookie: widget.cookie,
                             patientId: widget.patientId,
                             initialDepartment: department,
-                            initialDoctorName: doc['full_name'],
+                            initialDoctorName: name,
                             onClose: () => Navigator.pop(context),
                             onSuccess: () => Navigator.pop(context),
                           ),

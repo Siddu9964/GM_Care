@@ -287,9 +287,14 @@ class _AnimatedReportCardState extends State<_AnimatedReportCard> with SingleTic
     final dateStr = _formatDate(widget.report['consultation_date']);
     
     // Extract actual doctor name (using the backend join fix we implemented earlier)
-    String doctorName = widget.report['doctor_name'] ?? widget.report['doctor_id'] ?? 'Unknown Doctor';
-    if (!doctorName.toLowerCase().startsWith('dr.') && !doctorName.startsWith('DOC')) {
-      doctorName = 'Dr. $doctorName';
+    String rawDoc = (widget.report['doctor_name'] ?? widget.report['doctor_id'] ?? 'Unknown Doctor').toString().trim();
+    String doctorName = rawDoc;
+    if (!rawDoc.startsWith('DOC')) {
+      final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+      while (prefixRegex.hasMatch(doctorName)) {
+        doctorName = doctorName.replaceFirst(prefixRegex, '').trim();
+      }
+      doctorName = doctorName.isEmpty ? 'Doctor' : 'Dr. $doctorName';
     }
     
     // Try to get a meaningful title

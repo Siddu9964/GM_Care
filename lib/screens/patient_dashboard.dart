@@ -206,7 +206,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
           children: [
             RefreshIndicator(
               onRefresh: _handleRefresh,
-              color: const Color(0xFF1F6B4A),
+              color: const Color(0xFF1BA6B1),
               backgroundColor: Colors.white,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 110.0),
@@ -296,15 +296,15 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1F6B4A).withOpacity(0.1),
+                color: const Color(0xFF1BA6B1).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.support_agent_rounded, color: Color(0xFF1F6B4A), size: 36),
+              child: const Icon(Icons.support_agent_rounded, color: Color(0xFF1BA6B1), size: 36),
             ),
             const SizedBox(height: 14),
             const Text(
               "GM Care Support",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1E293B)),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF0E4D54)),
             ),
             const SizedBox(height: 8),
             Text(
@@ -322,7 +322,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 24),
+                  const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1BA6B1), size: 24),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -330,7 +330,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       children: const [
                         Text("Helpline", style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey)),
                         SizedBox(height: 2),
-                        Text("+91 80 2345 6789", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1E293B))),
+                        Text("080 2301 1600, +91 99000 35235", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF0E4D54))),
                       ],
                     ),
                   ),
@@ -401,7 +401,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                 const SizedBox(height: 14),
                 const Text(
                   "GM Emergency & Trauma Center",
-                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF143B2A)),
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: Color(0xFF0E4D54)),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
@@ -424,10 +424,10 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       Container(
                         padding: const EdgeInsets.all(9),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.12),
+                          color: const Color(0xFF1BA6B1).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1F6B4A), size: 22),
+                        child: const Icon(Icons.phone_in_talk_rounded, color: Color(0xFF1BA6B1), size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -436,7 +436,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                           children: const [
                             Text("Hospital Emergency Hotline (24x7)", style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF5A6E64))),
                             SizedBox(height: 2),
-                            Text("+91 80 2345 6789", style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF143B2A))),
+                            Text("080 2301 1600, +91 99000 35235", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF0E4D54))),
                           ],
                         ),
                       ),
@@ -502,7 +502,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
         border: Border.all(color: const Color(0xFFDED8CB)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1F6B4A).withValues(alpha: 0.05),
+            color: const Color(0xFF1BA6B1).withValues(alpha: 0.05),
             blurRadius: 18,
             offset: const Offset(0, 4),
           ),
@@ -522,11 +522,11 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF26875B),
+                        color: const Color(0xFF1BA6B1),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF26875B).withValues(alpha: 0.45 * _pulseAnimation.value),
+                            color: const Color(0xFF1BA6B1).withValues(alpha: 0.45 * _pulseAnimation.value),
                             blurRadius: 6 * _pulseAnimation.value,
                             spreadRadius: 2 * _pulseAnimation.value,
                           ),
@@ -540,7 +540,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFF1F6B4A),
+                      color: Color(0xFF0E4D54),
                       letterSpacing: 0.8,
                     ),
                   ),
@@ -549,7 +549,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.bolt_rounded, size: 12, color: Color(0xFF26875B)),
+                  Icon(Icons.bolt_rounded, size: 12, color: Color(0xFF1BA6B1)),
                   SizedBox(width: 2),
                   Text(
                     "Live • 08:30 AM",
@@ -566,11 +566,11 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildVitalTile("BP", "118/76", "mmHg", Icons.favorite_rounded, const Color(0xFF1F6B4A)),
+              _buildVitalTile("BP", "118/76", "mmHg", Icons.favorite_rounded, const Color(0xFF1BA6B1)),
               const SizedBox(width: 8),
-              _buildVitalTile("PULSE", "72", "bpm", Icons.monitor_heart_rounded, const Color(0xFF26875B)),
+              _buildVitalTile("PULSE", "72", "bpm", Icons.monitor_heart_rounded, const Color(0xFF1596A1)),
               const SizedBox(width: 8),
-              _buildVitalTile("SpO2", "99", "%", Icons.air_rounded, const Color(0xFF143B2A)),
+              _buildVitalTile("SpO2", "99", "%", Icons.air_rounded, const Color(0xFF0E4D54)),
               const SizedBox(width: 8),
               _buildVitalTile("GLUCOSE", "94", "mg/dL", Icons.water_drop_rounded, const Color(0xFF5A6E64)),
             ],
@@ -666,14 +666,14 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                     padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                        colors: [Color(0xFF0E4D54), Color(0xFF1BA6B1)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.22),
+                          color: const Color(0xFF1BA6B1).withValues(alpha: 0.22),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -696,7 +696,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w900,
-                                  color: Color(0xFF143B2A),
+                                  color: Color(0xFF0E4D54),
                                   letterSpacing: 0.5,
                                 ),
                                 maxLines: 1,
@@ -707,16 +707,16 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+                                color: const Color(0xFF1BA6B1).withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.2)),
+                                border: Border.all(color: const Color(0xFF1BA6B1).withValues(alpha: 0.2)),
                               ),
                               child: const Text(
                                 "NABH",
                                 style: TextStyle(
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
-                                  color: Color(0xFF1F6B4A),
+                                  color: Color(0xFF1BA6B1),
                                   letterSpacing: 0.3,
                                 ),
                               ),
@@ -808,13 +808,13 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       border: Border.all(color: const Color(0xFFDED8CB)),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.04),
+                          color: const Color(0xFF1BA6B1).withValues(alpha: 0.04),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.notifications_none_rounded, size: 18, color: Color(0xFF1F6B4A)),
+                    child: const Icon(Icons.notifications_none_rounded, size: 18, color: Color(0xFF1BA6B1)),
                   ),
                 ),
               ],
@@ -847,7 +847,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
               border: Border.all(color: const Color(0xFFDED8CB)),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1F6B4A).withValues(alpha: 0.05),
+                  color: const Color(0xFF1BA6B1).withValues(alpha: 0.05),
                   blurRadius: 18,
                   offset: const Offset(0, 4),
                 )
@@ -862,8 +862,8 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       height: 52,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF0E5236),
-                        border: Border.all(color: const Color(0xFF1F6B4A).withValues(alpha: 0.3), width: 2),
+                        color: const Color(0xFF0E4D54),
+                        border: Border.all(color: const Color(0xFF1BA6B1).withValues(alpha: 0.3), width: 2),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.08),
@@ -958,7 +958,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF143B2A),
+                                color: Color(0xFF0E4D54),
                                 letterSpacing: -0.3,
                               ),
                               maxLines: 1,
@@ -968,20 +968,20 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF26875B).withValues(alpha: 0.12),
+                              color: const Color(0xFF1BA6B1).withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: const [
-                                Icon(Icons.verified_rounded, size: 9, color: Color(0xFF1F6B4A)),
+                                Icon(Icons.verified_rounded, size: 9, color: Color(0xFF1BA6B1)),
                                 SizedBox(width: 3),
                                 Text(
                                   "PATIENT RECORD",
                                   style: TextStyle(
                                     fontSize: 8,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF1F6B4A),
+                                    color: Color(0xFF1BA6B1),
                                     letterSpacing: 0.3,
                                   ),
                                 ),
@@ -1004,7 +1004,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                                     content: Text('UHID $uhid copied to clipboard'),
                                     duration: const Duration(seconds: 2),
                                     behavior: SnackBarBehavior.floating,
-                                    backgroundColor: const Color(0xFF143B2A),
+                                    backgroundColor: const Color(0xFF0E4D54),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                   ),
                                 );
@@ -1026,14 +1026,14 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                                         style: const TextStyle(
                                           fontSize: 9.5,
                                           fontWeight: FontWeight.w800,
-                                          color: Color(0xFF1F6B4A),
+                                          color: Color(0xFF0E4D54),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     const SizedBox(width: 3),
-                                    const Icon(Icons.copy_rounded, size: 9, color: Color(0xFF1F6B4A)),
+                                    const Icon(Icons.copy_rounded, size: 9, color: Color(0xFF1BA6B1)),
                                   ],
                                 ),
                               ),
@@ -1109,10 +1109,10 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
         Container(          height: 55,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.2), width: 0.8),
+            border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.2), width: 0.8),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1F6B4A).withOpacity(0.12),
+                color: const Color(0xFF1BA6B1).withOpacity(0.12),
                 blurRadius: 14,
                 spreadRadius: 1,
                 offset: const Offset(0, 6),
@@ -1137,7 +1137,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1F6B4A), height: 1.2),
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0E4D54), height: 1.2),
         ),
       ],
     );
@@ -1254,7 +1254,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF143B2A),
+                        color: Color(0xFF0E4D54),
                         letterSpacing: -0.4,
                       ),
                     ),
@@ -1306,7 +1306,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                   decoration: BoxDecoration(
                     gradient: isSelected
                         ? const LinearGradient(
-                            colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                            colors: [Color(0xFF0E4D54), Color(0xFF1BA6B1)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           )
@@ -1314,13 +1314,13 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                     color: isSelected ? null : Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isSelected ? const Color(0xFF143B2A) : const Color(0xFFDED8CB),
+                      color: isSelected ? const Color(0xFF0E4D54) : const Color(0xFFDED8CB),
                       width: 1.1,
                     ),
                     boxShadow: [
                       if (isSelected)
                         BoxShadow(
-                          color: const Color(0xFF1F6B4A).withValues(alpha: 0.25),
+                          color: const Color(0xFF1BA6B1).withValues(alpha: 0.25),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         )
@@ -1338,7 +1338,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                       Icon(
                         _getCategoryIcon(cat),
                         size: 15,
-                        color: isSelected ? Colors.white : const Color(0xFF1F6B4A),
+                        color: isSelected ? Colors.white : const Color(0xFF1BA6B1),
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -1346,7 +1346,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                         style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                          color: isSelected ? Colors.white : const Color(0xFF143B2A),
+                          color: isSelected ? Colors.white : const Color(0xFF0E4D54),
                         ),
                       ),
                     ],
@@ -1498,7 +1498,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
                                       height: 6,
                                       width: isDotActive ? 24 : 8,
                                       decoration: BoxDecoration(
-                                        color: isDotActive ? const Color(0xFF1F6B4A) : const Color(0xFF1F6B4A).withValues(alpha: 0.2),
+                                        color: isDotActive ? const Color(0xFF1BA6B1) : const Color(0xFF1BA6B1).withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                     );
@@ -1522,9 +1522,9 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.05)),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.05)),
       ),
-      child: const Center(child: CircularProgressIndicator(color: Color(0xFF1F6B4A))),
+      child: const Center(child: CircularProgressIndicator(color: Color(0xFF1BA6B1))),
     );
   }
 
@@ -1534,17 +1534,17 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       margin: const EdgeInsets.symmetric(horizontal: 20),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFF1F6B4A).withOpacity(0.06),
+        color: const Color(0xFF1BA6B1).withOpacity(0.06),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: const Color(0xFF1F6B4A).withOpacity(0.15)),
+        border: Border.all(color: const Color(0xFF1BA6B1).withOpacity(0.15)),
       ),
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded, color: Color(0xFF1F6B4A), size: 36),
+          Icon(Icons.search_off_rounded, color: Color(0xFF1BA6B1), size: 36),
           SizedBox(height: 10),
           Text('No specializations found.',
-              style: TextStyle(color: Color(0xFF1F6B4A), fontWeight: FontWeight.w700, fontSize: 14)),
+              style: TextStyle(color: Color(0xFF0E4D54), fontWeight: FontWeight.w700, fontSize: 14)),
         ],
       ),
     );
@@ -1557,7 +1557,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       'category': 'Wellness',
       'readTime': '5 min read',
       'icon': Icons.spa_rounded,
-      'color': const Color(0xFF1F6B4A),
+      'color': const Color(0xFF1BA6B1),
       'summary': 'Discover simple daily habits that can significantly improve your overall physical and mental well-being.',
       'sections': [
         {'heading': 'Stay Hydrated', 'body': 'Drinking enough water every day is crucial for many reasons: to regulate body temperature, keep joints lubricated, prevent infections, deliver nutrients to cells, and keep organs functioning properly.'},
@@ -1569,7 +1569,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       'category': 'Cardiology',
       'readTime': '4 min read',
       'icon': Icons.favorite_rounded,
-      'color': const Color(0xFF1F6B4A),
+      'color': const Color(0xFF1BA6B1),
       'summary': 'Learn how to protect your heart through diet, exercise, and stress management.',
       'sections': [
         {'heading': 'Eat a Heart-Healthy Diet', 'body': 'Focus on fruits, vegetables, whole grains, and lean proteins. Limit saturated fats, sodium, and added sugars.'},
@@ -1581,7 +1581,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       'category': 'Mental Health',
       'readTime': '6 min read',
       'icon': Icons.psychology_rounded,
-      'color': const Color(0xFF1F6B4A),
+      'color': const Color(0xFF1BA6B1),
       'summary': 'Understanding the crucial link between mental well-being and physical health.',
       'sections': [
         {'heading': 'Manage Stress', 'body': 'Chronic stress can lead to numerous physical problems. Practice relaxation techniques like meditation, yoga, or deep breathing.'},
@@ -1593,7 +1593,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       'category': 'Diet',
       'readTime': '3 min read',
       'icon': Icons.restaurant_rounded,
-      'color': const Color(0xFF1F6B4A),
+      'color': const Color(0xFF1BA6B1),
       'summary': 'We clarify some of the most common misconceptions about food and dieting.',
       'sections': [
         {'heading': 'Carbs Are Not the Enemy', 'body': 'Complex carbohydrates are essential for energy. Focus on whole grains and avoid refined sugars.'},
@@ -1605,7 +1605,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
       'category': 'Fitness',
       'readTime': '2 min read',
       'icon': Icons.accessibility_new_rounded,
-      'color': const Color(0xFF1F6B4A),
+      'color': const Color(0xFF1BA6B1),
       'summary': 'Why taking 5 minutes a day to stretch can transform your mobility and reduce pain.',
       'sections': [
         {'heading': 'Improved Flexibility', 'body': 'Regular stretching helps maintain the range of motion in your joints, preventing injuries.'},
@@ -1625,7 +1625,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
             style: TextStyle(
               fontSize: 24, 
               fontWeight: FontWeight.w900, 
-              color: Color(0xFF1F6B4A),
+              color: Color(0xFF0E4D54),
               letterSpacing: -0.5,
             )
           ),
@@ -1638,7 +1638,7 @@ class _PatientDashboardState extends State<PatientDashboard> with SingleTickerPr
             style: TextStyle(
               fontSize: 12, 
               fontWeight: FontWeight.w500, 
-              color: Color(0xFF1F6B4A),
+              color: Color(0xFF5A6E64),
             )
           ),
         ),
@@ -1805,7 +1805,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
           border: Border.all(color: const Color(0xFFDED8CB), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1F6B4A).withValues(alpha: 0.08),
+              color: const Color(0xFF1BA6B1).withValues(alpha: 0.08),
               blurRadius: 22,
               offset: const Offset(0, 8),
             )
@@ -1829,7 +1829,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                           imagePath,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFF143B2A),
+                            color: const Color(0xFF0E4D54),
                             child: const Center(
                               child: Icon(Icons.medical_services_rounded, size: 54, color: Colors.white70),
                             ),
@@ -1862,7 +1862,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF143B2A).withValues(alpha: 0.85),
+                                color: const Color(0xFF0E4D54).withValues(alpha: 0.85),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.8),
                               ),
@@ -1910,12 +1910,12 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.verified_user_rounded, size: 11, color: Color(0xFF1F6B4A)),
+                                  const Icon(Icons.verified_user_rounded, size: 11, color: Color(0xFF1BA6B1)),
                                   const SizedBox(width: 4),
                                   Text(
                                     doctorCount > 0 ? "$doctorCount Specialists" : "Senior Faculty",
                                     style: const TextStyle(
-                                      color: Color(0xFF143B2A),
+                                      color: Color(0xFF0E4D54),
                                       fontSize: 9.5,
                                       fontWeight: FontWeight.w900,
                                     ),
@@ -1950,7 +1950,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                                   style: const TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w900,
-                                    color: Color(0xFF143B2A),
+                                    color: Color(0xFF0E4D54),
                                     height: 1.1,
                                     letterSpacing: -0.3,
                                   ),
@@ -1961,7 +1961,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF26875B).withValues(alpha: 0.12),
+                                  color: const Color(0xFF1BA6B1).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: const Text(
@@ -1969,7 +1969,7 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: 8,
                                     fontWeight: FontWeight.w800,
-                                    color: Color(0xFF1F6B4A),
+                                    color: Color(0xFF1BA6B1),
                                   ),
                                 ),
                               ),
@@ -1994,14 +1994,14 @@ class CoverFlowSpecialtyCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 11),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF143B2A), Color(0xFF1F6B4A)],
+                            colors: [Color(0xFF0E4D54), Color(0xFF1BA6B1)],
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1F6B4A).withValues(alpha: 0.28),
+                              color: const Color(0xFF1BA6B1).withValues(alpha: 0.28),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             )
@@ -2072,7 +2072,7 @@ class _ArticleReaderSheet extends StatelessWidget {
                     child: Image.network(article['imageUrl'], height: 200, width: double.infinity, fit: BoxFit.cover),
                   ),
                 const SizedBox(height: 20),
-                Text(article['title'] ?? '', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1F6B4A))),
+                Text(article['title'] ?? '', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF0E4D54))),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -2094,7 +2094,7 @@ class _ArticleReaderSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(sec['heading'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1F6B4A))),
+                        Text(sec['heading'] ?? '', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0E4D54))),
                         const SizedBox(height: 10),
                         Text(sec['body'] ?? '', style: const TextStyle(fontSize: 15, color: Colors.black87, height: 1.6)),
                       ],

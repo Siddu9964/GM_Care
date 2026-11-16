@@ -30,6 +30,17 @@ class PrescriptionsScreen extends StatefulWidget {
     this.sex = 'Unknown',
   });
 
+  static String formatDoctorName(dynamic raw) {
+    if (raw == null) return 'Specialist Consultant';
+    String name = raw.toString().trim();
+    if (name.isEmpty) return 'Specialist Consultant';
+    final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+    while (prefixRegex.hasMatch(name)) {
+      name = name.replaceFirst(prefixRegex, '').trim();
+    }
+    return name.isEmpty ? 'Specialist Consultant' : 'Dr. $name';
+  }
+
   /// Standard URL resolver: guarantees valid absolute HTTP/HTTPS URL for PDFs
   static String resolvePdfUrl(dynamic item) {
     if (item == null) return '';
@@ -611,6 +622,17 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
     );
   }
 
+  static String formatDoctorName(dynamic raw) {
+    if (raw == null) return 'Specialist Consultant';
+    String name = raw.toString().trim();
+    if (name.isEmpty) return 'Specialist Consultant';
+    final prefixRegex = RegExp(r'^(dr\.\s*|dr\s+|doctor\s+|prof\.\s*|prof\s+)', caseSensitive: false);
+    while (prefixRegex.hasMatch(name)) {
+      name = name.replaceFirst(prefixRegex, '').trim();
+    }
+    return name.isEmpty ? 'Specialist Consultant' : 'Dr. $name';
+  }
+
   Widget _buildPrescriptionCard(Map<String, dynamic> item, int index) {
     final rxId =
         item['prescription_id']?.toString() ??
@@ -811,12 +833,15 @@ class _PrescriptionsScreenState extends State<PrescriptionsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            docName.startsWith('Dr') ? docName : 'Dr. $docName',
+                            PrescriptionsScreen.formatDoctorName(docName),
+                            maxLines: 2,
+                            softWrap: true,
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w900,
                               color: _kPrimaryDark,
                               letterSpacing: -0.3,
+                              height: 1.2,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -1216,7 +1241,7 @@ class _PrescriptionDetailSheet extends StatelessWidget {
                       Expanded(
                         child: _infoBlock(
                           "Consultant Doctor",
-                          docName.startsWith('Dr') ? docName : 'Dr. $docName',
+                          PrescriptionsScreen.formatDoctorName(docName),
                         ),
                       ),
                       const SizedBox(width: 12),
